@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\KategoriResource\Pages;
+// PASTIKAN IMPORT MODEL KATEGORI SUDAH BENAR
 use App\Models\Kategori;
 use Filament\Forms;
 use Filament\Forms\Components\Textarea;
@@ -15,6 +16,7 @@ use Filament\Tables\Table;
 
 class KategoriResource extends Resource
 {
+    // PASTIKAN BARIS INI ADA DAN MENUNJUK KE MODEL YANG BENAR
     protected static ?string $model = Kategori::class;
 
     // Mengatur ikon navigasi (https://heroicons.com/)

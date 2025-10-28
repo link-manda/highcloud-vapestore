@@ -6,10 +6,13 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+
+// IMPORT PENTING UNTUK FILAMENT
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Panel;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+// PASTIKAN ADA 'implements FilamentUser'
 class User extends Authenticatable implements FilamentUser
 {
     use HasFactory, Notifiable;
@@ -24,7 +27,7 @@ class User extends Authenticatable implements FilamentUser
         'email',
         'password',
         'role',
-        'id_cabang', // Penting untuk Staf
+        'id_cabang',
     ];
 
     /**
@@ -53,11 +56,10 @@ class User extends Authenticatable implements FilamentUser
     /**
      * Implementasi wajib untuk Filament.
      * Memeriksa apakah user dapat mengakses Panel Filament.
+     * Pastikan ini 'return true'.
      */
     public function canAccessPanel(Panel $panel): bool
     {
-        // Saat ini, kita izinkan semua user (admin dan staf) mengakses panel.
-        // Otorisasi lebih lanjut akan diatur di dalam Resource/Page.
         return true;
     }
 
