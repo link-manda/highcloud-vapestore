@@ -10,13 +10,8 @@ class StokCabang extends Model
 {
     use HasFactory;
 
-    protected $table = 'stok_cabangs'; // Nama tabel
+    protected $table = 'stok_cabangs';
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
     protected $fillable = [
         'id_cabang',
         'id_varian_produk',
@@ -24,11 +19,6 @@ class StokCabang extends Model
         'stok_minimum',
     ];
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
     protected function casts(): array
     {
         return [
@@ -37,19 +27,48 @@ class StokCabang extends Model
         ];
     }
 
-    /**
-     * Relasi: Data stok ini dimiliki oleh satu Cabang.
-     */
     public function cabang(): BelongsTo
     {
         return $this->belongsTo(Cabang::class, 'id_cabang');
     }
 
-    /**
-     * Relasi: Data stok ini dimiliki oleh satu VarianProduk.
-     */
     public function varianProduk(): BelongsTo
     {
         return $this->belongsTo(VarianProduk::class, 'id_varian_produk');
+    }
+
+    /**
+     * Method untuk menambah stok
+     */
+    public function tambahStok(int $jumlah): void
+    {
+        $this->update([
+            'stok_saat_ini' => $this->stok_saat_ini + $jumlah
+        ]);
+    }
+
+    /**
+     * Method untuk mengurangi stok
+     */
+    public function kurangiStok(int $jumlah): void
+    {
+        $stokBaru = $this->stok_saat_ini - $jumlah;
+        if ($stokBaru < 0) {
+            throw new \Exception('Stok tidak boleh kurang dari 0');
+        }
+
+        $this->update([
+            'stok_saat_ini' => $stokBaru
+        ]);
+    }
+
+    /**
+     * Method untuk memeriksa apakah stok sudah ada
+     */
+    public static function stokExists(int $cabangId, int $varianProdukId): bool
+    {
+        return static::where('id_cabang', $cabangId)
+            ->where('id_varian_produk', $varianProdukId)
+            ->exists();
     }
 }

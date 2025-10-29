@@ -2,118 +2,134 @@
 
 namespace App\Filament\Resources\VarianProdukResource\RelationManagers;
 
-use App\Models\Cabang;
 use Filament\Forms;
-use Filament\Forms\Components\NumberInput;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
-use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\QueryException;
+use Illuminate\Validation\ValidationException;
 
 class StokCabangsRelationManager extends RelationManager
 {
     protected static string $relationship = 'stokCabangs';
 
-    protected static ?string $recordTitleAttribute = 'id_cabang';
-
-    protected static ?string $title = 'Stok per Cabang';
+    // Method sederhana - hapus logika kompleks
+    public function isReadOnly(): bool
+    {
+        return false; // Langsung return false
+    }
 
     public function form(Form $form): Form
     {
         return $form
             ->schema([
-                // Pilih Cabang
-                Select::make('id_cabang')
-                    ->label('Cabang')
-                    // Ambil dari Model Cabang
-                    ->options(Cabang::all()->pluck('nama_cabang', 'id'))
-                    ->searchable()
+                Forms\Components\Select::make('id_cabang')
+                    ->relationship('cabang', 'nama_cabang')
                     ->required()
-                    ->native(false)
-                    // Pastikan satu varian tidak bisa punya 2 entri stok di 1 cabang
-                    ->unique(
-                        table: 'stok_cabangs',
-                        column: 'id_cabang',
-                        ignoreRecord: true,
-                        modifyRuleUsing: function (Builder $query, RelationManager $livewire) {
-                            return $query->where('id_varian_produk', $livewire->ownerRecord->id);
-                        }
-                    ),
+                    ->searchable()
+                    ->preload()
+                    ->label('Cabang')
+                    // Tambahkan validasi untuk mencegah duplikasi
+                    ->rules([
+                        function () {
+                            return function (string $attribute, $value, \Closure $fail) {
+                                $exists = \App\Models\StokCabang::where('id_cabang', $value)
+                                    ->where('id_varian_produk', $this->getOwnerRecord()->id)
+                                    ->exists();
 
-                // Input Stok Awal (Hanya saat membuat)
-                TextInput::make('stok_saat_ini')
-                    ->numeric()
-                    ->inputMode('decimal')
-                    ->label('Stok Awal')
-                    ->minValue(0)
-                    ->default(0)
-                    // Stok awal hanya bisa diisi saat pertama kali, 
-                    // setelah itu diupdate oleh transaksi
-                    ->hiddenOn('edit'),
+                                if ($exists) {
+                                    $cabang = \App\Models\Cabang::find($value);
+                                    $fail("Stok untuk cabang \"{$cabang->nama_cabang}\" sudah ada. Silakan edit stok yang sudah ada.");
+                                }
+                            };
+                        },
+                    ])
+                    ->helperText('Pilih cabang yang belum memiliki stok'),
 
-                // Input Stok Minimum (Bisa di-edit kapanpun)
-                TextInput::make('stok_minimum')
+                Forms\Components\TextInput::make('stok_saat_ini')
+                    ->required()
                     ->numeric()
-                    ->inputMode('decimal')
-                    ->label('Batas Stok Minimum')
-                    ->helperText('Batas untuk notifikasi restock.')
-                    ->minValue(0)
                     ->default(0)
-                    ->required(),
-            ])
-            ->columns(2);
+                    ->minValue(0)
+                    ->label('Jumlah Stok'),
+            ]);
     }
 
     public function table(Table $table): Table
     {
         return $table
+            ->recordTitleAttribute('cabang.nama_cabang')
             ->columns([
-                // Tampilkan Nama Cabang dari relasi
-                TextColumn::make('cabang.nama_cabang')
+                Tables\Columns\TextColumn::make('cabang.nama_cabang')
                     ->label('Nama Cabang')
-                    ->sortable(),
-
-                TextColumn::make('stok_saat_ini')
-                    ->label('Stok Saat Ini')
-                    ->badge()
-                    ->color('success')
-                    ->sortable(),
-
-                TextColumn::make('stok_minimum')
-                    ->label('Batas Stok Minimum')
-                    ->badge()
-                    ->color('warning')
-                    ->sortable(),
+                    ->sortable()
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('stok_saat_ini')
+                    ->label('Stok')
+                    ->sortable()
+                    ->numeric()
+                    ->formatStateUsing(fn($state) => number_format($state, 0)),
             ])
             ->filters([
                 //
             ])
             ->headerActions([
-                // Aksi untuk menambah 'Stok Cabang' baru
-                Tables\Actions\CreateAction::make(),
+                Tables\Actions\CreateAction::make()
+                    ->label('Tambah Stok Cabang')
+                    ->modalHeading('Tambah Stok di Cabang Baru')
+                    ->createAnother(false)
+                    // Tambahkan error handling untuk database constraint
+                    ->using(function (array $data) {
+                        try {
+                            return $this->getRelationship()->create($data);
+                        } catch (QueryException $exception) {
+                            // Tangani error duplicate entry
+                            if (str_contains($exception->getMessage(), 'Duplicate entry')) {
+                                $cabang = \App\Models\Cabang::find($data['id_cabang']);
+                                throw ValidationException::withMessages([
+                                    'id_cabang' => "Stok untuk cabang \"{$cabang->nama_cabang}\" sudah ada. Silakan edit stok yang sudah ada.",
+                                ]);
+                            }
+                            throw $exception;
+                        }
+                    }),
             ])
             ->actions([
-                // Hanya bisa edit stok minimum
-                Tables\Actions\EditAction::make(),
+                Tables\Actions\EditAction::make()
+                    ->modalHeading('Edit Stok Cabang')
+                    ->successNotificationTitle('Stok berhasil diperbarui'),
 
-                // Sebaiknya jangan hapus data stok, 
-                // tapi kita sediakan jika diperlukan
-                Tables\Actions\DeleteAction::make(),
+                Tables\Actions\Action::make('tambah_stok')
+                    ->label('Tambah Stok')
+                    ->icon('heroicon-o-plus')
+                    ->color('success')
+                    ->form([
+                        Forms\Components\TextInput::make('tambahan_stok')
+                            ->label('Jumlah Stok yang Ditambahkan')
+                            ->required()
+                            ->numeric()
+                            ->minValue(1)
+                            ->default(1),
+                    ])
+                    ->action(function (array $data, $record) {
+                        $tambahan = $data['tambahan_stok'];
+                        $record->update([
+                            'stok_saat_ini' => $record->stok_saat_ini + $tambahan
+                        ]);
+                    })
+                    ->successNotificationTitle('Stok berhasil ditambahkan'),
+
+                Tables\Actions\DeleteAction::make()
+                    ->modalHeading('Hapus Stok Cabang'),
             ])
             ->bulkActions([
-                //
-            ]);
-    }
-
-    // Fungsi ini memastikan kita hanya bisa MENGELOLA stok 
-    // untuk varian yang sedang dibuka
-    public static function canViewForRecord(Model $ownerRecord, string $pageName): bool
-    {
-        return true;
+                Tables\Actions\BulkActionGroup::make([
+                    Tables\Actions\DeleteBulkAction::make(),
+                ]),
+            ])
+            ->emptyStateHeading('Belum ada stok di cabang')
+            ->emptyStateDescription('Klik "Tambah Stok Cabang" untuk menambahkan stok di cabang tertentu.')
+            ->emptyStateIcon('heroicon-o-building-storefront');
     }
 }

@@ -10,15 +10,6 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Model;
-
-// IMPORT TAMBAHAN UNTUK FORM
-use Filament\Forms\Components\Section;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\NumberInput;
-
-// IMPORT BARU UNTUK INFOLIST (HALAMAN VIEW)
 use Filament\Infolists\Infolist;
 use Filament\Infolists\Components\Section as InfolistSection;
 use Filament\Infolists\Components\TextEntry;
@@ -28,11 +19,9 @@ class VarianProdukResource extends Resource
     protected static ?string $model = VarianProduk::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-archive-box';
-
     protected static ?string $label = 'Varian (SKU)';
     protected static ?string $pluralLabel = 'Varian (SKU)';
     protected static ?string $navigationLabel = 'Stok Varian (SKU)';
-
     protected static ?string $navigationGroup = 'Data Master';
     protected static ?int $navigationSort = 5;
 
@@ -41,29 +30,16 @@ class VarianProdukResource extends Resource
         return false;
     }
 
-    public static function canEdit(Model $record): bool
+    public static function canEdit($record): bool
     {
         return false;
     }
 
-    // Form ini (untuk Create/Edit) sengaja kita biarkan
-    // Namun kita tidak akan menggunakannya
     public static function form(Form $form): Form
     {
-        return $form
-            ->schema([
-                Select::make('id_produk')
-                    ->relationship('produk', 'nama_produk')
-                    ->native(false),
-                TextInput::make('nama_varian'),
-                TextInput::make('harga_beli'),
-                TextInput::make('harga_jual'),
-            ]);
+        return $form->schema([]);
     }
 
-    // FUNGSI BARU: INFOLIST (UNTUK HALAMAN VIEW)
-    // Ini akan menampilkan detail varian di halaman View,
-    // dan secara otomatis akan memuat Relation Manager di bawahnya.
     public static function infolist(Infolist $infolist): Infolist
     {
         return $infolist
@@ -79,6 +55,23 @@ class VarianProdukResource extends Resource
                             ->label('Harga Jual (POS)')
                             ->money('IDR'),
                     ])->columns(2),
+
+                InfolistSection::make('Summary Stok')
+                    ->schema([
+                        TextEntry::make('total_stok')
+                            ->label('Total Stok Semua Cabang')
+                            ->getStateUsing(function ($record) {
+                                return $record->stokCabangs->sum('stok_saat_ini');
+                            })
+                            ->numeric()
+                            ->formatStateUsing(fn($state) => number_format($state, 0)),
+
+                        TextEntry::make('jumlah_cabang')
+                            ->label('Jumlah Cabang yang Memiliki Stok')
+                            ->getStateUsing(function ($record) {
+                                return $record->stokCabangs->count();
+                            }),
+                    ])->columns(2),
             ]);
     }
 
@@ -90,22 +83,41 @@ class VarianProdukResource extends Resource
                     ->label('Produk Induk')
                     ->searchable()
                     ->sortable(),
+
                 TextColumn::make('nama_varian')
                     ->searchable()
                     ->sortable(),
+
                 TextColumn::make('harga_beli')
                     ->money('IDR')
                     ->sortable(),
+
                 TextColumn::make('harga_jual')
                     ->label('Harga Jual (POS)')
                     ->money('IDR')
+                    ->sortable(),
+
+                TextColumn::make('total_stok')
+                    ->label('Total Stok')
+                    ->getStateUsing(function ($record) {
+                        return $record->stokCabangs->sum('stok_saat_ini');
+                    })
+                    ->numeric()
+                    ->sortable()
+                    ->formatStateUsing(fn($state) => number_format($state, 0))
+                    ->color(fn($state) => $state > 0 ? 'success' : 'danger'),
+
+                TextColumn::make('cabang_count')
+                    ->label('Jumlah Cabang')
+                    ->getStateUsing(function ($record) {
+                        return $record->stokCabangs->count();
+                    })
                     ->sortable(),
             ])
             ->filters([
                 //
             ])
             ->actions([
-                // Pastikan ini adalah ViewAction, bukan EditAction
                 Tables\Actions\ViewAction::make()
                     ->label('Atur Stok'),
             ])
@@ -117,7 +129,6 @@ class VarianProdukResource extends Resource
     public static function getRelations(): array
     {
         return [
-            // Relation Manager inilah yang akan muncul di halaman View
             StokCabangsRelationManager::class,
         ];
     }
@@ -125,11 +136,8 @@ class VarianProdukResource extends Resource
     public static function getPages(): array
     {
         return [
-            // Halaman List (Daftar Varian)
             'index' => Pages\ListVarianProduks::route('/'),
-            // Halaman View (Atur Stok)
             'view' => Pages\ViewVarianProduk::route('/{record}'),
-            // Kita HAPUS route 'edit'
         ];
     }
 }
