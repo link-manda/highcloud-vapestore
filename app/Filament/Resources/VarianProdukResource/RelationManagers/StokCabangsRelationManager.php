@@ -9,6 +9,7 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\QueryException;
 use Illuminate\Validation\ValidationException;
+use Filament\Forms\Components\TextInput;
 
 class StokCabangsRelationManager extends RelationManager
 {
@@ -47,13 +48,20 @@ class StokCabangsRelationManager extends RelationManager
                     ])
                     ->helperText('Pilih cabang yang belum memiliki stok'),
 
-                Forms\Components\TextInput::make('stok_saat_ini')
-                    ->required()
+                TextInput::make('stok_saat_ini')
                     ->numeric()
-                    ->default(0)
-                    ->minValue(0)
-                    ->label('Jumlah Stok'),
-            ]);
+                    ->label('Stok Awal / Saat Ini')
+                    ->disabled(fn(string $operation): bool => $operation === 'edit') // Disable saat edit
+                    ->required(fn(string $operation): bool => $operation === 'create') // Wajib hanya saat create (stok awal)
+                    ->helperText(fn(string $operation): ?string => $operation === 'edit' ? 'Stok saat ini hanya bisa diubah melalui transaksi Barang Masuk/Keluar.' : 'Masukkan jumlah stok awal untuk cabang ini.')
+                    ->default(0),
+                TextInput::make('stok_minimum')
+                    ->numeric()
+                    ->required()
+                    ->label('Batas Stok Minimum')
+                    ->helperText('Batas stok untuk memicu notifikasi email ke Admin.')
+                    ->default(0),
+                    ]);
     }
 
     public function table(Table $table): Table
@@ -105,7 +113,7 @@ class StokCabangsRelationManager extends RelationManager
                     ->icon('heroicon-o-plus')
                     ->color('success')
                     ->form([
-                        Forms\Components\TextInput::make('tambahan_stok')
+                        TextInput::make('tambahan_stok')
                             ->label('Jumlah Stok yang Ditambahkan')
                             ->required()
                             ->numeric()

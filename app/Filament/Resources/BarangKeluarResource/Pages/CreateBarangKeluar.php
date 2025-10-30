@@ -4,21 +4,23 @@ namespace App\Filament\Resources\BarangKeluarResource\Pages;
 
 use App\Filament\Resources\BarangKeluarResource;
 use App\Models\StokCabang;
-use App\Models\User; // <-- Tambahkan use User
-use App\Notifications\StokMinimumNotification; // <-- Tambahkan use Notification
+use App\Models\User;
+use App\Notifications\StokMinimumNotification;
 use Filament\Actions;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log; // <-- Tambahkan use Log
 use Illuminate\Validation\ValidationException;
-use Illuminate\Support\Facades\Notification as NotificationFacade; // <-- Tambahkan alias untuk facade Notification
+use Illuminate\Support\Facades\Notification as NotificationFacade;
 
 class CreateBarangKeluar extends CreateRecord
 {
     protected static string $resource = BarangKeluarResource::class;
 
+    // --- mutateFormDataBeforeCreate (Tidak ada perubahan, sudah benar) ---
     protected function mutateFormDataBeforeCreate(array $data): array
     {
         $user = Auth::user();
@@ -44,21 +46,18 @@ class CreateBarangKeluar extends CreateRecord
         // 3. Jika user adalah Staf, pastikan id_cabang diisi dari data Staf
         if ($user->role === 'staf') {
             $data['id_cabang'] = $user->id_cabang;
-            // Pastikan data ini ada saat submit meskipun field disabled
             if (!isset($data['id_cabang'])) {
-                \Log::warning("id_cabang missing for staff user {$user->id} during BarangKeluar creation.");
-                // Throw exception or handle error appropriately
+                Log::warning("id_cabang missing for staff user {$user->id} during BarangKeluar creation.");
                 throw ValidationException::withMessages(['id_cabang' => 'Cabang tidak terdeteksi untuk pengguna staf.']);
             }
         } elseif (!isset($data['id_cabang'])) {
-            // Handle jika admin tapi cabang belum dipilih (seharusnya tidak terjadi jika required)
             throw ValidationException::withMessages(['id_cabang' => 'Cabang asal barang wajib dipilih.']);
         }
-
 
         return $data;
     }
 
+    // --- beforeCreate (Tidak ada perubahan, sudah benar) ---
     protected function beforeCreate(): void
     {
         $items = $this->data['details'] ?? [];
@@ -120,19 +119,21 @@ class CreateBarangKeluar extends CreateRecord
         }
     }
 
-
+    // --- afterCreate (Perbaikan dan Logging Ditambahkan) ---
     protected function afterCreate(): void
     {
         $barangKeluar = $this->record;
         $barangKeluar->load('details');
-        $stokUntukNotifikasi = []; // Kumpulkan record StokCabang yang perlu notifikasi
+        $stokUntukNotifikasi = [];
+
+        Log::info("--- Starting afterCreate for BarangKeluar ID: {$barangKeluar->id} ---"); // LOG AWAL
 
         try {
-            DB::transaction(function () use ($barangKeluar, &$stokUntukNotifikasi) { // Gunakan reference &
+            DB::transaction(function () use ($barangKeluar, &$stokUntukNotifikasi) {
                 $idCabang = $barangKeluar->id_cabang;
 
                 if (!$idCabang) {
-                    \Log::error("Cabang tidak ditemukan untuk Barang Keluar ID: {$barangKeluar->id}");
+                    Log::error("[afterCreate] Cabang tidak ditemukan untuk Barang Keluar ID: {$barangKeluar->id}");
                     throw new \Exception("Cabang tidak valid.");
                 }
 
@@ -141,69 +142,92 @@ class CreateBarangKeluar extends CreateRecord
                     $jumlahKeluar = $item->jumlah;
 
                     if (!$idVarian || $jumlahKeluar <= 0) {
-                        \Log::warning("Skipping invalid item in BarangKeluarDetail ID: {$item->id}");
+                        Log::warning("[afterCreate] Skipping invalid item in BarangKeluarDetail ID: {$item->id}");
                         continue;
                     }
 
+                    Log::info("[afterCreate] Processing Varian ID: {$idVarian}, Jumlah Keluar: {$jumlahKeluar}, Cabang ID: {$idCabang}"); // LOG ITEM
+
+                    // Kunci lagi untuk keamanan saat decrement dan check (meskipun kecil kemungkinannya setelah beforeCreate)
                     $stok = StokCabang::where('id_cabang', $idCabang)
                         ->where('id_varian_produk', $idVarian)
-                        // ->lockForUpdate() // Seharusnya tidak perlu lock lagi jika beforeCreate sudah pakai lock
+                        ->lockForUpdate() // Kunci lagi saat transaksi berjalan
                         ->first();
 
                     if (!$stok) {
-                        // Ini seharusnya tidak terjadi jika stok awal sudah diinisialisasi
-                        \Log::error("Stok record not found for Varian ID: {$idVarian}, Cabang ID: {$idCabang} during BarangKeluar ID: {$barangKeluar->id}. Cannot decrement.");
+                        Log::error("[afterCreate] Stok record not found for Varian ID: {$idVarian}, Cabang ID: {$idCabang}. Cannot decrement.");
                         throw new \Exception("Record stok tidak ditemukan untuk varian ID {$idVarian}.");
                     }
 
-                    // Ambil stok sebelum dikurangi untuk cek notifikasi
                     $stokSebelum = $stok->stok_saat_ini;
                     $stokMinimum = $stok->stok_minimum;
 
+                    Log::info("[afterCreate] Stok Sebelum: {$stokSebelum}, Stok Minimum: {$stokMinimum}"); // LOG STOK SEBELUM
+
                     if ($stokSebelum < $jumlahKeluar) {
-                        \Log::error("Stock inconsistency detected (after validation) for Varian ID: {$idVarian}, Cabang ID: {$idCabang}. Available: {$stokSebelum}, Required: {$jumlahKeluar}");
+                        Log::error("[afterCreate] Stock inconsistency (after validation) for Varian ID: {$idVarian}, Cabang ID: {$idCabang}. Available: {$stokSebelum}, Required: {$jumlahKeluar}");
                         throw new \Exception("Inkonsistensi stok terdeteksi (setelah validasi) untuk varian ID {$idVarian}. Transaksi dibatalkan.");
                     }
 
                     // Kurangi stok
                     $stok->decrement('stok_saat_ini', $jumlahKeluar);
-                    $stokSaatIni = $stok->stok_saat_ini; // Ambil stok terbaru setelah decrement
+
+                    // PENTING: Ambil nilai stok terbaru SETELAH decrement dari database
+                    $stokSaatIni = DB::table('stok_cabangs')
+                        ->where('id', $stok->id)
+                        ->value('stok_saat_ini'); // Ambil langsung dari DB
+
+                    Log::info("[afterCreate] Stok Setelah Decrement: {$stokSaatIni}"); // LOG STOK SETELAH
 
                     // --- Logika Cek Notifikasi ---
-                    if ($stokMinimum > 0) { // Hanya cek jika stok minimum diset (> 0)
+                    if ($stokMinimum > 0) {
+                        Log::info("[afterCreate] Checking notification condition: (stokSebelum > stokMinimum) && (stokSaatIni <= stokMinimum) -> ({$stokSebelum} > {$stokMinimum}) && ({$stokSaatIni} <= {$stokMinimum})"); // LOG KONDISI
                         if (($stokSebelum > $stokMinimum) && ($stokSaatIni <= $stokMinimum)) {
-                            // Kondisi terpenuhi, tambahkan ke list notifikasi
-                            // Kita perlu refresh model untuk mendapatkan data relasi terbaru jika diperlukan
-                            $stokUntukNotifikasi[] = $stok->fresh(['varianProduk.produk', 'cabang']);
+                            Log::info("[afterCreate] !!! NOTIFICATION CONDITION MET for Varian ID: {$idVarian} !!!"); // LOG KONDISI TERPENUHI
+                            // Reload relasi penting SEBELUM dikirim
+                            $stok->load(['varianProduk.produk', 'cabang']);
+                            $stokUntukNotifikasi[] = $stok; // Tambahkan instance model yang sudah di-load
                         }
+                    } else {
+                        Log::info("[afterCreate] Stok Minimum is 0, skipping notification check."); // LOG SKIP KARENA MIN 0
                     }
                     // --- Akhir Logika Cek Notifikasi ---
                 }
-            });
+            }); // Akhir DB::transaction
+
+            Log::info("[afterCreate] DB Transaction successful."); // LOG TRANSAKSI SUKSES
 
             // --- Kirim Notifikasi (Dilakukan SETELAH transaksi DB sukses) ---
             if (!empty($stokUntukNotifikasi)) {
-                $admins = User::where('role', 'admin')->get(); // Ambil semua admin
+                Log::info("[afterCreate] Found " . count($stokUntukNotifikasi) . " items needing notification."); // LOG JML NOTIF
+                $admins = User::where('role', 'admin')->get();
                 if ($admins->isNotEmpty()) {
+                    Log::info("[afterCreate] Found " . $admins->count() . " admin users to notify."); // LOG JML ADMIN
                     foreach ($stokUntukNotifikasi as $stokNotif) {
-                        // Kirim notifikasi ke semua admin untuk setiap item yang mencapai minimum
+                        // Pastikan relasi sudah di-load
+                        if (!$stokNotif->relationLoaded('varianProduk') || !$stokNotif->varianProduk->relationLoaded('produk') || !$stokNotif->relationLoaded('cabang')) {
+                            Log::warning("[afterCreate] Relations not loaded for notification StokCabang ID: {$stokNotif->id}. Reloading...");
+                            $stokNotif->load(['varianProduk.produk', 'cabang']);
+                        }
+                        Log::info("[afterCreate] Sending notification for StokCabang ID: {$stokNotif->id}"); // LOG KIRIM NOTIF
                         NotificationFacade::send($admins, new StokMinimumNotification($stokNotif));
-                        \Log::info("Stok minimum notification sent for Varian ID: {$stokNotif->id_varian_produk}, Cabang ID: {$stokNotif->id_cabang}");
                     }
                 } else {
-                    \Log::warning("No admin users found to send stock minimum notifications.");
+                    Log::warning("[afterCreate] No admin users found to send stock minimum notifications.");
                 }
+            } else {
+                Log::info("[afterCreate] No items reached minimum stock threshold."); // LOG TIDAK ADA NOTIF
             }
             // --- Akhir Kirim Notifikasi ---
 
 
-            // Kirim notifikasi sukses transaksi
             Notification::make()
                 ->title('Barang Keluar berhasil ditambahkan')
-                ->body('Stok telah berhasil diperbarui.') // Tambahkan detail
+                ->body('Stok telah berhasil diperbarui.')
                 ->success()
                 ->send();
         } catch (\Exception $e) {
+            Log::error("[afterCreate] Exception caught: " . $e->getMessage(), ['exception' => $e]); // LOG ERROR EXCEPTION
             Notification::make()
                 ->title('Error Memperbarui Stok atau Mengirim Notifikasi')
                 ->body('Gagal memperbarui stok atau mengirim notifikasi: ' . $e->getMessage() . '. Data transaksi mungkin sudah tersimpan, harap periksa manual.')
@@ -211,8 +235,12 @@ class CreateBarangKeluar extends CreateRecord
                 ->persistent()
                 ->sendToDatabase(Auth::user());
 
-            $this->redirect($this->getResource()::getUrl('index'));
+            // Jangan redirect di sini agar user tahu ada error, Filament akan handle error Exception
+            // $this->redirect($this->getResource()::getUrl('index'));
+            // Lemparkan kembali error agar Filament bisa menanganinya
+            throw $e;
         }
+        Log::info("--- Finished afterCreate for BarangKeluar ID: {$barangKeluar->id} ---"); // LOG AKHIR
     }
 
 
@@ -223,6 +251,6 @@ class CreateBarangKeluar extends CreateRecord
 
     protected function getCreatedNotification(): ?Notification
     {
-        return null; // Kita handle notifikasi sukses di afterCreate
+        return null;
     }
 }
