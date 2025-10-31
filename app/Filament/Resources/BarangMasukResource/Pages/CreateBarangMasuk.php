@@ -6,8 +6,9 @@ use App\Filament\Resources\BarangMasukResource;
 use App\Models\BarangMasuk;
 use App\Models\StokCabang;
 use App\Models\User;
-use App\Models\PurchaseOrder; // <= IMPORT BARU
-use App\Models\PurchaseOrderDetail; // <= IMPORT BARU
+use App\Models\PurchaseOrder;
+use App\Models\PurchaseOrderDetail;
+use App\Models\BarangMasukDetail; // <= IMPORT BARU
 use App\Notifications\StokMinimumNotification;
 use Filament\Actions;
 use Filament\Resources\Pages\CreateRecord;
@@ -25,7 +26,6 @@ class CreateBarangMasuk extends CreateRecord
 
     protected function getRedirectUrl(): string
     {
-        // Arahkan ke halaman view setelah create
         return $this->getResource()::getUrl('view', ['record' => $this->record]);
     }
 
@@ -35,16 +35,14 @@ class CreateBarangMasuk extends CreateRecord
         $user = Auth::user();
         $data['id_user'] = $user->id;
 
-        // Set Cabang Tujuan (jika user adalah staf)
         if ($user->role === 'staf' && $user->id_cabang) {
             $data['id_cabang_tujuan'] = $user->id_cabang;
             Log::info('[mutateBM] Staff role detected. Cabang Tujuan ID set: ' . $data['id_cabang_tujuan']);
         }
 
-        // Generate Nomor Transaksi Unik
         try {
             $today = Carbon::today();
-            $idCabang = $data['id_cabang_tujuan'] ?? 'NULL'; // Ambil cabang tujuan
+            $idCabang = $data['id_cabang_tujuan'] ?? 'NULL';
 
             $lastTransactionToday = BarangMasuk::where('id_cabang_tujuan', $idCabang)
                 ->whereDate('created_at', $today)
@@ -67,37 +65,117 @@ class CreateBarangMasuk extends CreateRecord
             throw $e;
         }
 
-        // Validasi jika menerima dari PO
-        if (!empty($data['id_purchase_order'])) {
-            Log::info('[mutateBM] PO ID provided: ' . $data['id_purchase_order']);
-            $po = PurchaseOrder::with('details')->find($data['id_purchase_order']);
-            if (!$po) {
-                throw new \Exception("Purchase Order tidak ditemukan.");
-            }
-
-            foreach ($data['details'] as $itemDiterima) {
-                $poDetail = $po->details->firstWhere('id_varian_produk', $itemDiterima['id_varian_produk']);
-                $jumlahDiterima = (int)$itemDiterima['jumlah'];
-                $sisaQty = $poDetail->jumlah_pesan - $poDetail->jumlah_diterima;
-
-                // Validasi final jumlah diterima vs sisa PO
-                if ($jumlahDiterima > $sisaQty) {
-                    Log::warning('[mutateBM] Validation Failed: Jumlah diterima > Sisa PO.');
-                    FilamentNotification::make()
-                        ->title('Validasi Gagal')
-                        ->body("Jumlah diterima untuk item '{$poDetail->varianProduk->nama_varian}' ({$jumlahDiterima}) melebihi sisa yang dipesan di PO ({$sisaQty}).")
-                        ->danger()
-                        ->send();
-                    // Hentikan proses
-                    $this->halt();
-                }
-            }
-        }
-
-
         Log::info('--- Finished mutateFormDataBeforeCreate ---');
         return $data;
     }
+
+    // Validasi sekarang akan berjalan karena 'details' ada di $formData
+    protected function beforeCreate(): void
+    {
+        Log::info('--- Starting beforeCreate for BarangMasuk ---');
+
+        $formData = $this->form->getState();
+
+        // DEBUG: Log seluruh structure details
+        Log::info('[beforeCreate-BM] Full form data details: ', $formData['details'] ?? []);
+
+        $idPo = $formData['id_purchase_order'] ?? null;
+
+        if ($idPo) {
+            Log::info('[beforeCreate-BM] PO ID provided: ' . $idPo . '. Validating details...');
+
+            $po = PurchaseOrder::with('details.varianProduk')->find($idPo);
+            if (!$po) {
+                FilamentNotification::make()
+                    ->title('Validasi Gagal')
+                    ->body("Purchase Order (ID: {$idPo}) tidak ditemukan.")
+                    ->danger()
+                    ->send();
+                $this->halt();
+                return;
+            }
+
+            // Validasi details structure
+            if (empty($formData['details']) || !is_array($formData['details'])) {
+                Log::error('[beforeCreate-BM] Details is empty or not array');
+                FilamentNotification::make()
+                    ->title('Validasi Gagal')
+                    ->body("Detail item dari PO tidak boleh kosong.")
+                    ->danger()
+                    ->send();
+                $this->halt();
+                return;
+            }
+
+            foreach ($formData['details'] as $index => $itemDiterima) {
+                $varianId = $itemDiterima['id_varian_produk'] ?? null;
+
+                // Validasi yang lebih detail
+                if (empty($varianId)) {
+                    Log::error("[beforeCreate-BM] Item at index {$index} has null or empty id_varian_produk");
+                    Log::error("[beforeCreate-BM] Full item data:", $itemDiterima);
+
+                    FilamentNotification::make()
+                        ->title('Validasi Gagal')
+                        ->body("Item ke-" . ($index + 1) . " tidak memiliki varian produk yang valid. Silakan refresh halaman dan coba lagi.")
+                        ->danger()
+                        ->send();
+                    $this->halt();
+                    return;
+                }
+
+                $poDetail = $po->details->firstWhere('id_varian_produk', $varianId);
+
+                if (!$poDetail) {
+                    Log::error("[beforeCreate-BM] PO Detail not found for varian_id: {$varianId}");
+                    FilamentNotification::make()
+                        ->title('Validasi Gagal')
+                        ->body("Item (Varian ID: {$varianId}) tidak ditemukan di PO terkait.")
+                        ->danger()
+                        ->send();
+                    $this->halt();
+                    return;
+                }
+
+                $jumlahDiterimaDiForm = $itemDiterima['jumlah'] ?? 0;
+
+                // Pastikan jumlah adalah integer, bukan array
+                if (is_array($jumlahDiterimaDiForm)) {
+                    Log::error("[beforeCreate-BM] Jumlah is array for item {$index}");
+                    $jumlahDiterimaDiForm = 0;
+                }
+
+                $jumlahDiterimaDiForm = (int)$jumlahDiterimaDiForm;
+                $jumlahPesan = (int)$poDetail->jumlah_pesan;
+                $jumlahSudahDiterima = (int)$poDetail->jumlah_diterima;
+                $sisaQty = $jumlahPesan - $jumlahSudahDiterima;
+
+                Log::info("[beforeCreate-BM] VALIDATING ITEM: Varian ID {$varianId}");
+                Log::info("[beforeCreate-BM]   -> Jumlah di Form: {$jumlahDiterimaDiForm}");
+                Log::info("[beforeCreate-BM]   -> Jumlah di PO (Pesan): {$jumlahPesan}");
+                Log::info("[beforeCreate-BM]   -> Jumlah di PO (Diterima): {$jumlahSudahDiterima}");
+                Log::info("[beforeCreate-BM]   -> Sisa Qty (Calculated): {$sisaQty}");
+
+                if ($jumlahDiterimaDiForm > $sisaQty) {
+                    $namaVarian = $poDetail->varianProduk ? $poDetail->varianProduk->nama_varian : "Varian ID " . $varianId;
+                    Log::warning("[beforeCreate-BM] Validation Failed: Jumlah diterima ({$jumlahDiterimaDiForm}) > Sisa PO ({$sisaQty}) for Varian: {$namaVarian}");
+
+                    FilamentNotification::make()
+                        ->title('Validasi Gagal')
+                        ->body("Jumlah diterima untuk item '{$namaVarian}' ({$jumlahDiterimaDiForm}) melebihi sisa yang dipesan di PO ({$sisaQty}).")
+                        ->danger()
+                        ->send();
+
+                    $this->halt();
+                    return;
+                }
+            }
+            Log::info('[beforeCreate-BM] PO Validation Successful.');
+        } else {
+            Log::info('[beforeCreate-BM] No PO ID provided. Skipping PO validation.');
+        }
+    }
+
 
     protected function afterCreate(): void
     {
@@ -105,28 +183,59 @@ class CreateBarangMasuk extends CreateRecord
         $barangMasuk = $this->record;
         $idCabangTujuan = $barangMasuk->id_cabang_tujuan;
 
-        // Gunakan DB Transaction untuk memastikan integritas data (Stok + PO Update)
+        // Ambil data 'details' dari form (bukan dari $this->record, karena belum ada)
+        $detailsData = $this->data['details'] ?? [];
+        if (empty($detailsData)) {
+            Log::warning('[afterCreate-BM] No details found in form data to process.');
+            return;
+        }
+
         DB::beginTransaction();
         try {
 
+            $createdDetails = []; // Array untuk menampung detail yang baru dibuat
+
+            // 0. (BARU) MANUAL CREATE DETAILS
+            Log::info('[afterCreate-BM] Starting Manual Detail Creation...');
+            // Di dalam afterCreate(), perbaiki bagian pembuatan detail:
+            foreach ($detailsData as $detail) {
+                // Pastikan tipe data benar sebelum perhitungan
+                $jumlah = $detail['jumlah'] ?? 0;
+                $harga = $detail['harga_beli_saat_transaksi'] ?? 0;
+
+                if (is_array($jumlah)) {
+                    Log::warning('[afterCreate-BM] jumlah is array, using 0');
+                    $jumlah = 0;
+                }
+                if (is_array($harga)) {
+                    Log::warning('[afterCreate-BM] harga_beli_saat_transaksi is array, using 0');
+                    $harga = 0;
+                }
+
+                $subtotal = (int)$jumlah * (float)$harga;
+
+                $createdDetail = BarangMasukDetail::create([
+                    'id_barang_masuk' => $barangMasuk->id,
+                    'id_varian_produk' => $detail['id_varian_produk'],
+                    'jumlah' => (int)$jumlah,
+                    'harga_beli_saat_transaksi' => (float)$harga,
+                    'subtotal' => $subtotal,
+                ]);
+                $createdDetails[] = $createdDetail;
+                Log::info("[afterCreate-BM] Created BarangMasukDetail ID: {$createdDetail->id}");
+            }
+
+
             // 1. LOGIKA UPDATE STOK (INCREMENT)
             Log::info('[afterCreate-BM] Starting Stok Increment...');
-            foreach ($barangMasuk->details as $detail) {
+            foreach ($createdDetails as $detail) { // Loop dari detail yang baru dibuat
                 Log::info("[afterCreate-BM] Processing Stok Varian ID: {$detail->id_varian_produk}, Jumlah: {$detail->jumlah}, Cabang: {$idCabangTujuan}");
 
-                // Cari atau buat record stok
                 $stok = StokCabang::firstOrCreate(
-                    [
-                        'id_cabang' => $idCabangTujuan,
-                        'id_varian_produk' => $detail->id_varian_produk
-                    ],
-                    [
-                        'stok_saat_ini' => 0, // Inisialisasi jika baru
-                        'stok_minimum' => 0  // Default minimum
-                    ]
+                    ['id_cabang' => $idCabangTujuan, 'id_varian_produk' => $detail->id_varian_produk],
+                    ['stok_saat_ini' => 0, 'stok_minimum' => 0]
                 );
 
-                // Tambah stok
                 $stok->increment('stok_saat_ini', $detail->jumlah);
                 Log::info("[afterCreate-BM] Stok Varian ID: {$detail->id_varian_produk} incremented. New stok: {$stok->stok_saat_ini}");
             }
@@ -140,27 +249,21 @@ class CreateBarangMasuk extends CreateRecord
                 $po = PurchaseOrder::with('details')->find($barangMasuk->id_purchase_order);
 
                 if ($po) {
-                    $totalDiterimaPo = 0;
                     $totalDipesanPo = $po->details->sum('jumlah_pesan');
 
-                    // Loop melalui item yang baru diterima di BarangMasuk
-                    foreach ($barangMasuk->details as $itemDiterima) {
-                        // Cari detail PO yang sesuai
+                    foreach ($createdDetails as $itemDiterima) { // Loop dari detail yang baru dibuat
                         $poDetail = $po->details->firstWhere('id_varian_produk', $itemDiterima->id_varian_produk);
 
                         if ($poDetail) {
-                            // Update jumlah_diterima di PO Detail
                             $poDetail->increment('jumlah_diterima', $itemDiterima->jumlah);
                             Log::info("[afterCreate-BM] PO Detail Varian ID: {$poDetail->id_varian_produk} incremented by {$itemDiterima->jumlah}. New diterima: {$poDetail->jumlah_diterima}");
                         }
                     }
 
-                    // Muat ulang (refresh) data PO detail untuk mendapatkan total terbaru
-                    $po->refresh();
+                    $po->load('details'); // Muat ulang relasi
                     $totalDiterimaPo = $po->details->sum('jumlah_diterima');
                     Log::info("[afterCreate-BM] PO Total Dipesan: {$totalDipesanPo}, PO Total Diterima (Updated): {$totalDiterimaPo}");
 
-                    // Update Status PO Induk
                     if ($totalDiterimaPo >= $totalDipesanPo) {
                         $po->status = 'Completed';
                         Log::info("[afterCreate-BM] PO Status changed to: Completed");
@@ -168,30 +271,23 @@ class CreateBarangMasuk extends CreateRecord
                         $po->status = 'Partially Received';
                         Log::info("[afterCreate-BM] PO Status changed to: Partially Received");
                     }
-                    // (Jika 0, status tetap 'Submitted')
 
-                    $po->save(); // Simpan perubahan status PO
+                    $po->save();
                 } else {
                     Log::warning('[afterCreate-BM] PO not found during update logic.');
                 }
             }
 
-            // Jika semua sukses
             DB::commit();
             Log::info('[afterCreate-BM] DB Transaction successful.');
         } catch (\Exception $e) {
-            // Jika ada error
             DB::rollBack();
             Log::error('[afterCreate-BM] ERROR during transaction: ' . $e->getMessage());
-            // Tampilkan notifikasi error ke user
             FilamentNotification::make()
                 ->title('Gagal Memperbarui Stok atau PO')
                 ->body('Terjadi kesalahan: ' . $e->getMessage())
                 ->danger()
                 ->send();
-
-            // Hapus record BarangMasuk yg baru dibuat agar tidak gantung (Opsional, tapi disarankan)
-            // $barangMasuk->delete(); 
         }
 
         Log::info('--- Finished afterCreate for BarangMasuk ID: ' . $this->record->id . ' ---');

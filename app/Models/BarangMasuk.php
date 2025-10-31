@@ -12,13 +12,6 @@ class BarangMasuk extends Model
     use HasFactory;
 
     /**
-     * The table associated with the model.
-     *
-     * @var string
-     */
-    protected $table = 'barang_masuks';
-
-    /**
      * The attributes that are mass assignable.
      *
      * @var array<int, string>
@@ -31,31 +24,31 @@ class BarangMasuk extends Model
         'id_cabang_tujuan',
         'id_user',
         'catatan',
+        'id_purchase_order', // <-- INI YANG HILANG/PERLU DITAMBAHKAN
     ];
 
     /**
-     * The attributes that should be cast.
-     *
-     * @var array<string, string>
+     * Get the details for the barang masuk.
      */
-    protected $casts = [
-        'tanggal_masuk' => 'datetime',
-    ];
+    public function details(): HasMany
+    {
+        return $this->hasMany(BarangMasukDetail::class, 'id_barang_masuk');
+    }
 
     /**
-     * Get the supplier that owns the barang masuk.
+     * Get the user that created the barang masuk.
+     */
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'id_user');
+    }
+
+    /**
+     * Get the supplier for the barang masuk.
      */
     public function supplier(): BelongsTo
     {
         return $this->belongsTo(Supplier::class, 'id_supplier');
-    }
-
-    /**
-     * Get the source branch for the barang masuk (if it's a transfer).
-     */
-    public function cabangSumber(): BelongsTo
-    {
-        return $this->belongsTo(Cabang::class, 'id_cabang_sumber');
     }
 
     /**
@@ -67,18 +60,19 @@ class BarangMasuk extends Model
     }
 
     /**
-     * Get the user who recorded the barang masuk.
+     * Get the source branch for the barang masuk.
      */
-    public function user(): BelongsTo
+    public function cabangSumber(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'id_user');
+        return $this->belongsTo(Cabang::class, 'id_cabang_sumber');
     }
 
     /**
-     * Get the details for the barang masuk.
+     * Get the purchase order associated with the barang masuk.
      */
-    public function details(): HasMany
+    public function purchaseOrder(): BelongsTo
     {
-        return $this->hasMany(BarangMasukDetail::class, 'id_barang_masuk');
+        // TAMBAHKAN FUNGSI INI JIKA BELUM ADA
+        return $this->belongsTo(PurchaseOrder::class, 'id_purchase_order');
     }
 }
