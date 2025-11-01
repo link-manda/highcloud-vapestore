@@ -3,17 +3,18 @@
 namespace App\Filament\Resources\BarangMasukResource\Pages;
 
 use App\Filament\Resources\BarangMasukResource;
-use App\Models\PurchaseOrder; // Import
-use App\Models\StokCabang; // Import
-use App\Models\VarianProduk; // Import
+use App\Models\BarangMasuk;
+use App\Models\BarangMasukDetail; // <-- [PENTING] Import model ini
+use App\Models\PurchaseOrder;
+use App\Models\StokCabang;
 use Filament\Actions;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log; // Import Log
-use Filament\Forms\Get;
-use Filament\Forms\Set;
-use Filament\Notifications\Notification; // Import
+use Illuminate\Support\Facades\Log;
+use Filament\Notifications\Notification as FilamentNotification;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Carbon;
 
 class CreateBarangMasuk extends CreateRecord
 {
@@ -21,7 +22,7 @@ class CreateBarangMasuk extends CreateRecord
 
     protected function getRedirectUrl(): string
     {
-        return $this->getResource()::getUrl('index');
+        return $this->getResource()::getUrl('view', ['record' => $this->record]);
     }
 
     /**
@@ -29,29 +30,51 @@ class CreateBarangMasuk extends CreateRecord
      */
     protected function mutateFormDataBeforeCreate(array $data): array
     {
-        // 1. Set User Pencatat
-        $data['id_user_pencatat'] = auth()->id();
+        Log::info('--- Starting mutateFormDataBeforeCreate for BarangMasuk ---');
+        $user = Auth::user();
 
-        // 2. Generate Nomor Dokumen Unik (Contoh: BM-20251101-001)
-        $prefix = 'BM-' . now()->format('Ymd');
-        $lastRecord = DB::table('barang_masuks')
-            ->where('nomor_transaksi', 'like', $prefix . '%')
-            ->orderBy('nomor_transaksi', 'desc')
-            ->first();
+        // 1. Set User Pencatat (SESUAI DENGAN ERROR SEBELUMNYA)
+        $data['id_user'] = $user->id;
 
-        $nextSequence = 1;
-        if ($lastRecord) {
-            $lastSequence = (int) substr($lastRecord->nomor_transaksi, -3);
-            $nextSequence = $lastSequence + 1;
+        // Atur cabang tujuan jika staf
+        if ($user->role === 'staf' && $user->id_cabang) {
+            $data['id_cabang_tujuan'] = $user->id_cabang;
+            Log::info('[mutateBM] Staff role detected. Cabang Tujuan ID set: ' . $data['id_cabang_tujuan']);
         }
-        $data['nomor_transaksi'] = $prefix . '-' . str_pad($nextSequence, 3, '0', STR_PAD_LEFT);
 
+        // 2. Generate Nomor Dokumen Unik
+        try {
+            $today = Carbon::today();
+            $prefix = 'BM-' . $today->format('Ymd');
+
+            $lastTransaction = BarangMasuk::where('nomor_transaksi', 'like', $prefix . '-%')
+                ->orderBy('nomor_transaksi', 'desc')
+                ->first();
+
+            $nextSequence = 1;
+            if ($lastTransaction && preg_match('/-(\d+)$/', $lastTransaction->nomor_transaksi, $matches)) {
+                $nextSequence = (int)$matches[1] + 1;
+            }
+
+            $data['nomor_transaksi'] = $prefix . '-' . str_pad($nextSequence, 4, '0', STR_PAD_LEFT);
+            Log::info('[mutateBM] Generated Nomor Transaksi: ' . $data['nomor_transaksi']);
+        } catch (\Exception $e) {
+            Log::error('[mutateBM] Error generating Nomor Transaksi: ' . $e->getMessage());
+            FilamentNotification::make()
+                ->title('Gagal Membuat Nomor Transaksi')
+                ->body('Terjadi kesalahan: ' . $e->getMessage())
+                ->danger()
+                ->send();
+            throw $e;
+        }
+
+        Log::info('--- Finished mutateFormDataBeforeCreate ---');
         return $data;
     }
 
     /**
-     * Logika utama setelah record (induk) berhasil disimpan.
-     * Kita akan update stok di sini.
+     * [LOGIKA BARU YANG ROBUST]
+     * Ambil kendali penuh atas penyimpanan detail dan update stok.
      */
     protected function afterCreate(): void
     {
@@ -59,57 +82,82 @@ class CreateBarangMasuk extends CreateRecord
         $barangMasuk = $this->record;
         $idCabangTujuan = $barangMasuk->id_cabang_tujuan;
 
-        // [PERBAIKAN] Ambil 'details' dari relasi ($this->record),
-        // BUKAN dari data form mentah ($this->data).
-        // Ini adalah record detail yang BARU SAJA dibuat otomatis oleh Filament.
-        $createdDetails = $this->record->details;
+        // 1. Ambil data 'details' dari FORM DATA MENTAH ($this->data)
+        // Kita tidak lagi mengandalkan $this->record->details
+        $detailsData = $this->data['details'] ?? [];
 
-        if ($createdDetails->isEmpty()) {
-            Log::warning('[afterCreate-BM] No details were auto-created by Filament. Nothing to process.');
+        if (empty($detailsData)) {
+            Log::warning('[afterCreate-BM] No details found in form data. Transaction stopped.');
+            FilamentNotification::make()
+                ->title('Gagal Menyimpan Detail')
+                ->body('Tidak ada item detail yang ditemukan untuk disimpan.')
+                ->danger()
+                ->send();
             return;
         }
 
         DB::beginTransaction();
         try {
+            Log::info('[afterCreate-BM] Starting Manual Detail Creation & Stok Increment...');
 
-            // 0. [HAPUS] BAGIAN MANUAL CREATE DETAILS
-            // Logika `BarangMasukDetail::create([...])` dihapus
-            // karena sudah ditangani otomatis oleh Filament.
+            // 2. Loop data form dan BUAT DETAIL + UPDATE STOK
+            foreach ($detailsData as $detail) {
+                // Pastikan tipe data benar
+                $jumlah = (int)($detail['jumlah'] ?? 0);
+                $harga = (float)($detail['harga_beli_saat_transaksi'] ?? 0);
+                $subtotal = $jumlah * $harga;
+                $varianId = $detail['id_varian_produk'] ?? null;
 
-            // 1. LOGIKA UPDATE STOK (INCREMENT)
-            Log::info('[afterCreate-BM] Starting Stok Increment...');
-            foreach ($createdDetails as $detail) { // Loop dari detail yang sudah ada
-                Log::info("[afterCreate-BM] Processing Stok Varian ID: {$detail->id_varian_produk}, Jumlah: {$detail->jumlah}, Cabang: {$idCabangTujuan}");
+                if ($jumlah <= 0 || $varianId === null) {
+                    Log::warning('[afterCreate-BM] Skipping invalid item detail.', $detail);
+                    continue; // Lewati item yang tidak valid
+                }
 
+                // A. BUAT DETAIL (MANUAL)
+                BarangMasukDetail::create([
+                    'id_barang_masuk' => $barangMasuk->id,
+                    'id_varian_produk' => $varianId,
+                    'jumlah' => $jumlah,
+                    'harga_beli_saat_transaksi' => $harga,
+                    'subtotal' => $subtotal,
+                ]);
+                Log::info("[afterCreate-BM] Created BarangMasukDetail for Varian ID: {$varianId}, Jumlah: {$jumlah}");
+
+                // B. UPDATE STOK (MANUAL)
                 $stok = StokCabang::firstOrCreate(
-                    ['id_cabang' => $idCabangTujuan, 'id_varian_produk' => $detail->id_varian_produk],
-                    ['stok_saat_ini' => 0, 'stok_minimum' => 0]
+                    ['id_cabang' => $idCabangTujuan, 'id_varian_produk' => $varianId],
+                    ['stok_saat_ini' => 0, 'stok_minimum' => 0] // Nilai default jika baru dibuat
                 );
 
-                $stok->increment('stok_saat_ini', $detail->jumlah);
-                Log::info("[afterCreate-BM] Stok Varian ID: {$detail->id_varian_produk} incremented. New stok: {$stok->stok_saat_ini}");
+                $stok->increment('stok_saat_ini', $jumlah);
+                Log::info("[afterCreate-BM] Stok Varian ID: {$varianId} incremented by {$jumlah}. New stok: {$stok->stok_saat_ini}");
             }
-            Log::info('[afterCreate-BM] Stok Increment finished.');
+            Log::info('[afterCreate-BM] Finished Detail Creation & Stok Increment.');
 
-
-            // 2. LOGIKA UPDATE PURCHASE ORDER (PO)
+            // 3. LOGIKA UPDATE PURCHASE ORDER (PO)
             if ($barangMasuk->id_purchase_order) {
                 Log::info('[afterCreate-BM] PO ID detected: ' . $barangMasuk->id_purchase_order . '. Starting PO Update...');
-
                 $po = PurchaseOrder::with('details')->find($barangMasuk->id_purchase_order);
 
                 if ($po) {
                     $totalDipesanPo = $po->details->sum('jumlah_pesan');
 
-                    foreach ($createdDetails as $itemDiterima) { // Loop dari detail yang sudah ada
-                        $poDetail = $po->details->firstWhere('id_varian_produk', $itemDiterima->id_varian_produk);
+                    // Loop lagi data form untuk update PO
+                    foreach ($detailsData as $itemDiterima) {
+                        $jumlahDiterima = (int)($itemDiterima['jumlah'] ?? 0);
+                        $varianId = $itemDiterima['id_varian_produk'] ?? null;
+
+                        if ($jumlahDiterima <= 0 || $varianId === null) continue;
+
+                        $poDetail = $po->details->firstWhere('id_varian_produk', $varianId);
 
                         if ($poDetail) {
-                            $poDetail->increment('jumlah_diterima', $itemDiterima->jumlah);
-                            Log::info("[afterCreate-BM] PO Detail Varian ID: {$poDetail->id_varian_produk} incremented by {$itemDiterima->jumlah}. New diterima: {$poDetail->jumlah_diterima}");
+                            $poDetail->increment('jumlah_diterima', $jumlahDiterima);
+                            Log::info("[afterCreate-BM] PO Detail Varian ID: {$poDetail->id_varian_produk} incremented by {$jumlahDiterima}. New diterima: {$poDetail->jumlah_diterima}");
                         }
                     }
 
+                    // Cek status PO
                     $po->load('details'); // Muat ulang relasi
                     $totalDiterimaPo = $po->details->sum('jumlah_diterima');
                     Log::info("[afterCreate-BM] PO Total Dipesan: {$totalDipesanPo}, PO Total Diterima (Updated): {$totalDiterimaPo}");

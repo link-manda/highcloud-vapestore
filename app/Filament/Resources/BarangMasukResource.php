@@ -4,10 +4,9 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\BarangMasukResource\Pages;
 use App\Models\BarangMasuk;
+use App\Models\PurchaseOrder;
 use App\Models\VarianProduk;
 use App\Models\StokCabang;
-use App\Models\PurchaseOrder;
-use App\Models\PurchaseOrderDetail;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -42,173 +41,158 @@ class BarangMasukResource extends Resource
 
         return $form
             ->schema([
-                Forms\Components\Group::make()
+                Forms\Components\Section::make('Informasi Transaksi')
                     ->schema([
-                        Forms\Components\Section::make('Informasi Transaksi')
+                        Forms\Components\TextInput::make('nomor_transaksi')
+                            ->default('BM-' . date('Ymd') . '-XXXX')
+                            ->disabled()
+                            ->dehydrated()
+                            ->label('Nomor Transaksi'),
+                        Forms\Components\DatePicker::make('tanggal_masuk')
+                            ->default(now())
+                            ->required()
+                            ->label('Tanggal Masuk'),
+                        Forms\Components\Select::make('id_cabang_tujuan')
+                            ->relationship('cabangTujuan', 'nama_cabang')
+                            ->label('Cabang Tujuan (Penerima)')
+                            ->searchable()
+                            ->preload()
+                            ->required()
+                            ->reactive()
+                            ->disabled($user->role === 'staf' && $user->id_cabang)
+                            ->dehydrated()
+                            ->default($user->role === 'staf' ? $user->id_cabang : null)
+                            ->afterStateUpdated(fn(Set $set) => $set('id_purchase_order', null)),
+                        Forms\Components\Select::make('id_supplier')
+                            ->relationship('supplier', 'nama_supplier')
+                            ->label('Sumber Supplier')
+                            ->searchable()
+                            ->preload()
+                            ->reactive()
+                            ->required()
+                            ->afterStateUpdated(fn(Set $set) => $set('id_purchase_order', null)),
+                        Forms\Components\Select::make('id_purchase_order')
+                            ->label('Purchase Order (PO)')
+                            ->options(function (Get $get): Collection {
+                                $supplierId = $get('id_supplier');
+                                $cabangId = $get('id_cabang_tujuan');
+                                if (!$supplierId || !$cabangId) {
+                                    return collect();
+                                }
+                                return PurchaseOrder::where('id_supplier', $supplierId)
+                                    ->where('id_cabang_tujuan', $cabangId)
+                                    ->whereIn('status', ['Submitted', 'Partially Received'])
+                                    ->pluck('nomor_po', 'id');
+                            })
+                            ->searchable()
+                            ->preload()
+                            ->reactive()
+                            ->live()
+                            ->visible(fn(Get $get) => $get('id_supplier') !== null && $get('id_cabang_tujuan') !== null)
+                            ->afterStateUpdated(function (Set $set, ?string $state) {
+                                self::fillDetailsFromPO($set, $state);
+                            })
+                            ->helperText('Pilih PO untuk mengisi item secara otomatis. Kosongkan jika barang masuk tanpa PO.'),
+                        Forms\Components\Textarea::make('catatan')
+                            ->label('Catatan Tambahan')
+                            ->rows(2)
+                            ->columnSpanFull(),
+                    ])->columns(2),
+
+                Forms\Components\Section::make('Detail Item Barang Masuk')
+                    ->schema([
+                        Forms\Components\Repeater::make('details')
+                            ->label('Item')
                             ->schema([
-                                Forms\Components\TextInput::make('nomor_transaksi')
-                                    ->default('BM-' . date('Ymd') . '-XXXX')
-                                    ->disabled()
-                                    ->dehydrated() // Tetap gunakan ini agar nilai default ter-generate
-                                    ->label('Nomor Transaksi'),
-                                Forms\Components\DatePicker::make('tanggal_masuk')
-                                    ->default(now())
+                                Forms\Components\Hidden::make('id_varian_produk')
                                     ->required()
-                                    ->label('Tanggal Masuk'),
-                                Forms\Components\Select::make('id_cabang_tujuan')
-                                    ->relationship('cabangTujuan', 'nama_cabang')
-                                    ->label('Cabang Tujuan (Penerima)')
+                                    ->visible(fn(Get $get) => $get('id_purchase_order') !== null),
+
+                                Forms\Components\Select::make('id_varian_produk')
+                                    ->label('Produk Varian (SKU)')
                                     ->searchable()
                                     ->preload()
-                                    ->required() // Wajib diisi (penting untuk Admin)
-                                    ->reactive()
-                                    // [PERBAIKAN FINAL]
-                                    // 1. Kembali ke `disabled()`
-                                    // 2. Tambahkan `dehydrated()`
-                                    // Ini adalah cara yang benar untuk memastikan field
-                                    // yang non-aktif tetap tersimpan.
-                                    ->disabled($user->role === 'staf' && $user->id_cabang)
-                                    ->dehydrated()
-                                    ->default($user->role === 'staf' ? $user->id_cabang : null)
-                                    ->afterStateUpdated(fn(Set $set) => $set('id_purchase_order', null)),
-                                Forms\Components\Select::make('id_supplier')
-                                    ->relationship('supplier', 'nama_supplier')
-                                    ->label('Sumber Supplier')
-                                    ->searchable()
-                                    ->preload()
-                                    ->reactive()
                                     ->required()
-                                    ->afterStateUpdated(fn(Set $set) => $set('id_purchase_order', null)),
-                                Forms\Components\Select::make('id_purchase_order')
-                                    ->label('Purchase Order (PO)')
-                                    ->options(function (Get $get): Collection {
-                                        $supplierId = $get('id_supplier');
-                                        $cabangId = $get('id_cabang_tujuan');
-                                        if (!$supplierId || !$cabangId) {
-                                            return collect();
-                                        }
-                                        return PurchaseOrder::where('id_supplier', $supplierId)
-                                            ->where('id_cabang_tujuan', $cabangId)
-                                            ->whereIn('status', ['Submitted', 'Partially Received'])
-                                            ->pluck('nomor_po', 'id');
+                                    ->reactive()
+                                    ->getSearchResultsUsing(fn(string $search): array => VarianProduk::with('produk')
+                                        ->where('nama_varian', 'like', "%{$search}%")
+                                        ->orWhere('sku_code', 'like', "%{$search}%")
+                                        ->orWhereHas('produk', fn($query) => $query->where('nama_produk', 'like', "%{$search}%"))
+                                        ->limit(50)
+                                        ->get()
+                                        ->mapWithKeys(fn(VarianProduk $record) => [$record->id => "{$record->produk->nama_produk} - {$record->nama_varian}"])
+                                        ->all())
+                                    ->getOptionLabelUsing(function ($value): ?string {
+                                        $record = VarianProduk::with('produk')->find($value);
+                                        return $record ? "{$record->produk->nama_produk} - {$record->nama_varian}" : null;
                                     })
-                                    ->searchable()
-                                    ->preload()
+                                    ->afterStateUpdated(function (Set $set, ?string $state, Get $get) {
+                                        if ($get('id_purchase_order') === null && $state) {
+                                            $varian = VarianProduk::find($state);
+                                            $hargaDefault = $varian ? $varian->harga_beli : 0;
+                                            $set('harga_beli_saat_transaksi', $hargaDefault);
+
+                                            $jumlah = (int) $get('jumlah');
+                                            $set('subtotal', $jumlah * $hargaDefault);
+                                        }
+                                    })
+                                    ->visible(fn(Get $get) => $get('id_purchase_order') === null)
+                                    ->columnSpan(['md' => 5]),
+
+                                Forms\Components\TextInput::make('jumlah')
+                                    ->label('Jumlah Diterima')
+                                    ->numeric()
+                                    ->required()
+                                    ->minValue(1)
+                                    ->default(1)
                                     ->reactive()
                                     ->live()
-                                    ->visible(fn(Get $get) => $get('id_supplier') !== null && $get('id_cabang_tujuan') !== null)
-                                    ->afterStateUpdated(function (Set $set, ?string $state) {
-                                        self::fillDetailsFromPO($set, $state);
+                                    ->afterStateUpdated(function (Get $get, Set $set, $state) {
+                                        $harga = (float) $get('harga_beli_saat_transaksi');
+                                        $jumlah = (int) $state;
+                                        $set('subtotal', $jumlah * $harga);
                                     })
-                                    ->helperText('Pilih PO untuk mengisi item secara otomatis. Kosongkan jika barang masuk tanpa PO.'),
+                                    ->columnSpan(['md' => 2]),
 
-                            ])->columns(2),
-                        Forms\Components\Section::make('Catatan')
-                            ->schema([
-                                Forms\Components\Textarea::make('catatan')
-                                    ->label('Catatan Tambahan')
-                                    ->rows(2),
-                            ]),
-                    ])
-                    ->columnSpan(['lg' => 2]),
-
-                Forms\Components\Group::make()
-                    ->schema([
-                        Forms\Components\Section::make('Detail Item Barang Masuk')
-                            ->schema([
-                                Forms\Components\Repeater::make('details')
-                                    ->label('Item')
-                                    ->schema([
-                                        Forms\Components\Hidden::make('id_varian_produk')
-                                            ->required()
-                                            ->visible(fn(Get $get) => $get('../../id_purchase_order') !== null),
-
-                                        Forms\Components\Select::make('id_varian_produk')
-                                            ->label('Produk Varian (SKU)')
-                                            ->searchable()
-                                            ->preload()
-                                            ->required()
-                                            ->reactive()
-                                            ->getSearchResultsUsing(fn(string $search): array => VarianProduk::with('produk')
-                                                ->where('nama_varian', 'like', "%{$search}%")
-                                                ->orWhere('sku_code', 'like', "%{$search}%")
-                                                ->orWhereHas('produk', fn($query) => $query->where('nama_produk', 'like', "%{$search}%"))
-                                                ->limit(50)
-                                                ->get()
-                                                ->mapWithKeys(fn(VarianProduk $record) => [$record->id => "{$record->produk->nama_produk} - {$record->nama_varian}"])
-                                                ->all())
-                                            ->getOptionLabelUsing(function ($value): ?string {
-                                                $record = VarianProduk::with('produk')->find($value);
-                                                return $record ? "{$record->produk->nama_produk} - {$record->nama_varian}" : null;
-                                            })
-                                            ->afterStateUpdated(function (Set $set, ?int $state, Get $get) {
-                                                if ($get('../../id_purchase_order') === null) {
-                                                    $varian = VarianProduk::find($state);
-                                                    $hargaDefault = $varian ? $varian->harga_beli : 0;
-                                                    $set('harga_beli_saat_transaksi', $hargaDefault);
-                                                    $jumlah = (int) $get('jumlah');
-                                                    $set('subtotal', $jumlah * $hargaDefault);
-                                                }
-                                            })
-                                            ->visible(fn(Get $get) => $get('../../id_purchase_order') === null)
-                                            ->columnSpan(['md' => 5]),
-
-                                        Forms\Components\TextInput::make('jumlah')
-                                            ->label('Jumlah Diterima')
-                                            ->numeric()
-                                            ->required()
-                                            ->minValue(1)
-                                            ->default(1)
-                                            ->reactive()
-                                            ->live()
-                                            ->afterStateUpdated(function (Get $get, Set $set, $state) {
-                                                $harga = (float) $get('harga_beli_saat_transaksi');
-                                                $jumlah = (int) $state;
-                                                $set('subtotal', $jumlah * $harga);
-                                            })
-                                            ->columnSpan(['md' => 2]),
-
-                                        Forms\Components\TextInput::make('harga_beli_saat_transaksi')
-                                            ->label('Harga Beli')
-                                            ->numeric()
-                                            ->required()
-                                            ->minValue(0)
-                                            ->reactive()
-                                            ->live()
-                                            ->afterStateUpdated(function (Get $get, Set $set, $state) {
-                                                $harga = (float) $state;
-                                                $jumlah = (int) $get('jumlah');
-                                                $set('subtotal', $jumlah * $harga);
-                                            })
-                                            ->prefix('Rp')
-                                            ->disabled(fn(Get $get) => $get('../../id_purchase_order') !== null)
-                                            ->columnSpan(['md' => 3]),
-
-                                        Forms\Components\Placeholder::make('subtotal_display')
-                                            ->label('Subtotal')
-                                            ->content(function (Get $get): string {
-                                                $subtotal = (float) ($get('jumlah') ?? 0) * (float) ($get('harga_beli_saat_transaksi') ?? 0);
-                                                return Number::currency($subtotal, 'IDR');
-                                            }),
-
-                                        Forms\Components\Hidden::make('subtotal')->default(0),
-                                    ])
-                                    ->itemLabel(function (array $state): ?string {
-                                        $varian = VarianProduk::with('produk')->find($state['id_varian_produk'] ?? null);
-                                        return $varian ? "{$varian->produk->nama_produk} - {$varian->nama_varian}" : null;
+                                Forms\Components\TextInput::make('harga_beli_saat_transaksi')
+                                    ->label('Harga Beli')
+                                    ->numeric()
+                                    ->required()
+                                    ->minValue(0)
+                                    ->reactive()
+                                    ->live()
+                                    ->afterStateUpdated(function (Get $get, Set $set, $state) {
+                                        $harga = (float) $state;
+                                        $jumlah = (int) $get('jumlah');
+                                        $set('subtotal', $jumlah * $harga);
                                     })
-                                    ->columns(['md' => 10])
-                                    ->addActionLabel('Tambah Item Manual')
-                                    ->addable(fn(Get $get) => $get('../../id_purchase_order') === null)
-                                    ->deletable(fn(Get $get) => $get('../../id_purchase_order') === null)
-                                    ->reorderable(false)
-                                    ->defaultItems(0)
-                                    ->required(),
-                            ])->columns(1),
-                    ])
-                    ->columnSpan(['lg' => 1]),
-            ])
-            ->columns(3);
+                                    ->prefix('Rp')
+                                    ->disabled(fn(Get $get) => $get('id_purchase_order') !== null)
+                                    ->columnSpan(['md' => 3]),
+
+                                Forms\Components\Placeholder::make('subtotal_display')
+                                    ->label('Subtotal')
+                                    ->content(function (Get $get): string {
+                                        $subtotal = (float) ($get('jumlah') ?? 0) * (float) ($get('harga_beli_saat_transaksi') ?? 0);
+                                        return Number::currency($subtotal, 'IDR');
+                                    })
+                                    ->columnSpan(['md' => 2]),
+
+                                Forms\Components\Hidden::make('subtotal')->default(0),
+                            ])
+                            ->itemLabel(function (array $state): ?string {
+                                $varian = VarianProduk::with('produk')->find($state['id_varian_produk'] ?? null);
+                                return $varian ? "{$varian->produk->nama_produk} - {$varian->nama_varian}" : null;
+                            })
+                            ->columns(['md' => 12])
+                            ->addActionLabel('Tambah Item Manual')
+                            ->addable(fn(Get $get) => $get('id_purchase_order') === null)
+                            ->deletable(fn(Get $get) => $get('id_purchase_order') === null)
+                            ->reorderable(false)
+                            ->defaultItems(0)
+                            ->required(),
+                    ])->columns(1),
+            ]);
     }
 
     public static function table(Table $table): Table
@@ -282,7 +266,9 @@ class BarangMasukResource extends Resource
                         Infolists\Components\RepeatableEntry::make('details')
                             ->label('')
                             ->schema([
-                                Infolists\Components\TextEntry::make('varianProduk.full_name')
+                                // [PERBAIKAN] Ganti 'varianProduk.full_name' menjadi 'id_varian_produk'
+                                // 'id_varian_produk' adalah kolom valid, 'getStateUsing' akan menimpanya.
+                                Infolists\Components\TextEntry::make('id_varian_produk')
                                     ->label('Produk Varian')
                                     ->getStateUsing(fn($record): string => $record->varianProduk ? (optional($record->varianProduk->produk)->nama_produk . ' - ' . $record->varianProduk->nama_varian) : 'N/A')
                                     ->columnSpan(4),
@@ -329,11 +315,10 @@ class BarangMasukResource extends Resource
         ];
     }
 
-    /**
-     * Helper untuk mengisi detail dari PO
-     */
     public static function fillDetailsFromPO(Set $set, ?string $poId): void
     {
+        $fieldName = 'harga_beli_saat_transaksi';
+
         if (empty($poId)) {
             $set('details', []);
             return;
@@ -351,7 +336,7 @@ class BarangMasukResource extends Resource
             $newDetails[] = [
                 'id_varian_produk' => $detail->id_varian_produk,
                 'jumlah' => $sisaQty,
-                'harga_beli_saat_transaksi' => $detail->harga_beli_saat_po,
+                $fieldName => $detail->harga_beli_saat_po,
                 'subtotal' => $sisaQty * $detail->harga_beli_saat_po,
             ];
             Log::info("[fillDetailsFromPO] Added detail - varian_id: {$detail->id_varian_produk}, jumlah: {$sisaQty}");
@@ -360,19 +345,15 @@ class BarangMasukResource extends Resource
         Log::info("[fillDetailsFromPO] Final details to set: " . json_encode($newDetails));
     }
 
-    /**
-     * Terapkan Scoping untuk Staf
-     */
     public static function getEloquentQuery(): Builder
     {
         $user = Auth::user();
         $query = parent::getEloquentQuery();
 
         if ($user->hasRole('Admin')) {
-            return $query; // Admin bisa lihat semua
+            return $query;
         }
 
-        // Staf hanya bisa lihat barang masuk ke cabangnya
         return $query->where('id_cabang_tujuan', $user->id_cabang);
     }
 }
