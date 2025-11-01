@@ -4,18 +4,22 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+// 1. IMPORT TRAIT DARI SPATIE
+use Spatie\Permission\Traits\HasRoles;
+use Filament\Models\Contracts\FilamentUser; // Import ini
+use Filament\Panel; // Import ini
 
-// IMPORT PENTING UNTUK FILAMENT
-use Filament\Models\Contracts\FilamentUser;
-use Filament\Panel;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-// PASTIKAN ADA 'implements FilamentUser'
+// 2. IMPLEMENTS KONTRAK FILAMENT USER
 class User extends Authenticatable implements FilamentUser
 {
     use HasFactory, Notifiable;
+
+    // 3. GUNAKAN TRAIT
+    use HasRoles;
 
     /**
      * The attributes that are mass assignable.
@@ -26,8 +30,8 @@ class User extends Authenticatable implements FilamentUser
         'name',
         'email',
         'password',
-        'role',
-        'id_cabang',
+        'id_cabang', // Tetap ada
+        'role', // Kolom ini mungkin tidak diperlukan lagi, tapi biarkan dulu
     ];
 
     /**
@@ -54,17 +58,7 @@ class User extends Authenticatable implements FilamentUser
     }
 
     /**
-     * Implementasi wajib untuk Filament.
-     * Memeriksa apakah user dapat mengakses Panel Filament.
-     * Pastikan ini 'return true'.
-     */
-    public function canAccessPanel(Panel $panel): bool
-    {
-        return true;
-    }
-
-    /**
-     * Relasi: Satu User (Staf) dimiliki oleh satu Cabang.
+     * Relasi ke Cabang
      */
     public function cabang(): BelongsTo
     {
@@ -72,18 +66,16 @@ class User extends Authenticatable implements FilamentUser
     }
 
     /**
-     * Helper function untuk memeriksa role Admin.
+     * [WAJIB ADA] Fungsi untuk Filament
+     * Kita akan cek role 'Admin'
      */
-    public function isAdmin(): bool
+    public function canAccessPanel(Panel $panel): bool
     {
-        return $this->role === 'admin';
-    }
-
-    /**
-     * Helper function untuk memeriksa role Staf.
-     */
-    public function isStaf(): bool
-    {
-        return $this->role === 'staf';
+        // Izinkan semua user yang terautentikasi mengakses panel.
+        // Pembatasan fitur akan diatur via Resource dan Policy.
+        // Jika Anda ingin membatasi staf agar tidak bisa login, 
+        // Anda bisa tambahkan logika role di sini.
+        // Untuk saat ini, kita izinkan semua.
+        return true;
     }
 }

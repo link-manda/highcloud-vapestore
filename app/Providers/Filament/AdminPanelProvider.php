@@ -28,7 +28,7 @@ class AdminPanelProvider extends PanelProvider
             ->path('admin')
             ->login() // Mengaktifkan halaman login
             ->colors([
-                'primary' => Color::Rose, // Anda bisa ganti warnanya
+            'primary' => Color::Indigo,
             ])
             ->brandName('Highcloud Inventory') // Mengganti nama
             ->navigationGroups([ // Ini untuk mengelompokkan menu

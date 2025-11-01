@@ -257,7 +257,8 @@ class PurchaseOrderResource extends Resource
                     ->sortable(),
                 Tables\Columns\TextColumn::make('status')
                     ->badge() // Tampilkan sebagai badge
-                    ->color(fn(PurchaseOrder $record): string => $record->status_color) // Gunakan accessor
+                    // PERBAIKAN DI BARIS 260: Tambahkan '?? 'gray''
+                    ->color(fn(PurchaseOrder $record): string => $record->status_color ?? 'gray') // Gunakan accessor dengan fallback
                     ->sortable(),
                 Tables\Columns\TextColumn::make('total_harga')
                     ->label('Total Harga')
@@ -328,8 +329,8 @@ class PurchaseOrderResource extends Resource
                         Infolists\Components\TextEntry::make('tanggal_estimasi_tiba')->label('Estimasi Tiba')->date('d M Y')->placeholder('-'),
                         Infolists\Components\TextEntry::make('status')
                             ->badge()
-                            ->color(fn(PurchaseOrder $record): string => $record->status_color),
-                        Infolists\Components\TextEntry::make('userPembuat.name')->label('Dibuat Oleh'),
+                            ->color(fn(PurchaseOrder $record): string => $record->status_color ?? 'gray'), // PERBAIKAN: Tambahkan default 'gray'
+                        Infolists\Components\TextEntry::make('userPembuat.name')->label('Dibuat Oleh')->placeholder('-'), // Tambahkan placeholder
                         Infolists\Components\TextEntry::make('catatan')->label('Catatan')->placeholder('-')->columnSpanFull(),
                     ])->columns(3), // 3 kolom untuk info header
 
@@ -340,25 +341,35 @@ class PurchaseOrderResource extends Resource
                             ->schema([
                                 Infolists\Components\TextEntry::make('varianProduk.full_name') // Gunakan accessor jika ada, atau join manual
                                     ->label('Produk Varian')
-                                    ->getStateUsing(fn($record): string => optional(optional($record->varianProduk)->produk)->nama_produk . ' - ' . optional($record->varianProduk)->nama_varian) // Versi aman jika relasi null
+                                    // PERBAIKAN: Gunakan optional chaining (?->) dan null coalescing (??)
+                                    ->getStateUsing(function ($record): string {
+                                        $namaProduk = $record->varianProduk?->produk?->nama_produk ?? '[Produk Dihapus]';
+                                        $namaVarian = $record->varianProduk?->nama_varian ?? '[Varian Dihapus]';
+                                        return $namaProduk . ' - ' . $namaVarian;
+                                    })
                                     ->columnSpan(4),
                                 Infolists\Components\TextEntry::make('jumlah_pesan')
                                     ->label('Jumlah Pesan')
                                     ->numeric()
+                                    ->default(0) // PERBAIKAN: Tambahkan default
                                     ->columnSpan(2),
                                 Infolists\Components\TextEntry::make('harga_beli_saat_po')
                                     ->label('Harga Beli')
                                     ->money('IDR')
+                                    ->default(0) // PERBAIKAN: Tambahkan default
                                     ->columnSpan(2),
                                 Infolists\Components\TextEntry::make('subtotal')
                                     ->label('Subtotal')
                                     ->money('IDR')
+                                    ->default(0) // PERBAIKAN UTAMA: Tambahkan default
                                     ->columnSpan(2),
                                 Infolists\Components\TextEntry::make('jumlah_diterima')
                                     ->label('Jumlah Diterima')
                                     ->numeric()
+                                    ->default(0) // PERBAIKAN: Tambahkan default
                                     ->badge()
-                                    ->color(fn($state, $record) => $state >= $record->jumlah_pesan ? 'success' : ($state > 0 ? 'warning' : 'gray'))
+                                    // PERBAIKAN: Casting (int) untuk keamanan
+                                    ->color(fn($state, $record) => (int)$state >= $record->jumlah_pesan ? 'success' : ((int)$state > 0 ? 'warning' : 'gray'))
                                     ->columnSpan(2),
                             ])
                             ->columns(12), // Total 12 kolom grid
@@ -368,13 +379,14 @@ class PurchaseOrderResource extends Resource
                         Infolists\Components\TextEntry::make('total_harga')
                             ->label('Total Harga PO')
                             ->money('IDR')
+                            ->default(0) // PERBAIKAN: Tambahkan default
                             ->size(Infolists\Components\TextEntry\TextEntrySize::Large), // Ukuran besar
                     ])
 
             ]);
     }
 
-
+    // Definisi Infolist untuk Halaman View
     public static function getRelations(): array
     {
         return [
