@@ -42,13 +42,9 @@ class CreateBarangMasuk extends CreateRecord
 
         try {
             $today = Carbon::today();
-            $idCabang = $data['id_cabang_tujuan'] ?? 'NULL';
-
-            $lastTransactionToday = BarangMasuk::where('id_cabang_tujuan', $idCabang)
-                ->whereDate('created_at', $today)
+            $lastTransactionToday = BarangMasuk::whereDate('created_at', $today)
                 ->orderBy('id', 'desc')
                 ->first();
-
             $countToday = 0;
             if ($lastTransactionToday && preg_match('/-(\d+)$/', $lastTransactionToday->nomor_transaksi, $matches)) {
                 $countToday = (int)$matches[1];

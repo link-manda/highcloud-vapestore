@@ -20,11 +20,10 @@ class BarangMasuk extends Model
         'nomor_transaksi',
         'tanggal_masuk',
         'id_supplier',
-        'id_cabang_sumber',
         'id_cabang_tujuan',
         'id_user',
         'catatan',
-        'id_purchase_order', // <-- INI YANG HILANG/PERLU DITAMBAHKAN
+        'id_purchase_order',
     ];
 
     /**

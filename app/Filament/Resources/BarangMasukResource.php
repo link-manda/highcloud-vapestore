@@ -66,26 +66,20 @@ class BarangMasukResource extends Resource
                                     ->afterStateUpdated(fn(Set $set) => $set('id_purchase_order', null)),
                                 Forms\Components\Select::make('id_supplier')
                                     ->relationship('supplier', 'nama_supplier')
-                                    ->label('Sumber: Supplier')
+                                    ->label('Sumber Supplier') // Ubah label menjadi lebih jelas
                                     ->searchable()
                                     ->preload()
                                     ->reactive()
-                                    ->afterStateUpdated(fn(Set $set) => $set('id_purchase_order', null))
-                                    ->hidden(fn(Get $get) => $get('id_cabang_sumber') !== null),
-                                Forms\Components\Select::make('id_cabang_sumber')
-                                    ->relationship('cabangSumber', 'nama_cabang')
-                                    ->label('Sumber: Transfer Cabang')
-                                    ->searchable()
-                                    ->preload()
-                                    ->reactive()
-                                    ->hidden(fn(Get $get) => $get('id_supplier') !== null)
-                                    ->helperText('Pilih ini jika barang masuk adalah hasil transfer dari cabang lain.'),
+                                    ->required() // Sekarang wajib diisi
+                                    ->afterStateUpdated(fn(Set $set) => $set('id_purchase_order', null)),
                                 Forms\Components\Select::make('id_purchase_order')
                                     ->label('Purchase Order (PO)')
                                     ->options(function (Get $get): Collection {
                                         $supplierId = $get('id_supplier');
                                         $cabangId = $get('id_cabang_tujuan');
-                                        if (!$supplierId || !$cabangId) return collect();
+                                        if (!$supplierId || !$cabangId) {
+                                            return collect();
+                                        }
                                         return PurchaseOrder::where('id_supplier', $supplierId)
                                             ->where('id_cabang_tujuan', $cabangId)
                                             ->whereIn('status', ['Submitted', 'Partially Received'])
@@ -100,6 +94,7 @@ class BarangMasukResource extends Resource
                                         self::fillDetailsFromPO($set, $state);
                                     })
                                     ->helperText('Pilih PO untuk mengisi item secara otomatis. Kosongkan jika barang masuk tanpa PO.'),
+
                             ])->columns(2),
                         Forms\Components\Section::make('Catatan')
                             ->schema([
