@@ -7,16 +7,15 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-// 1. IMPORT TRAIT DARI SPATIE
 use Spatie\Permission\Traits\HasRoles;
-use Filament\Models\Contracts\FilamentUser; // Import ini
-use Filament\Panel; // Import ini
+use Filament\Models\Contracts\FilamentUser;
+use Filament\Panel;
 
 
 // 2. IMPLEMENTS KONTRAK FILAMENT USER
 class User extends Authenticatable implements FilamentUser
 {
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, HasRoles;
 
     // 3. GUNAKAN TRAIT
     use HasRoles;

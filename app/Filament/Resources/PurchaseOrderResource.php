@@ -82,7 +82,7 @@ class PurchaseOrderResource extends Resource
                                     ->rows(3),
                             ]),
                     ])
-                    ->columnSpan(['lg' => 2]),
+                    ->columnSpan(['lg' => 3]),
 
                 Forms\Components\Group::make()
                     ->schema([
@@ -206,7 +206,7 @@ class PurchaseOrderResource extends Resource
 
                             ])->columns(1), // Section detail item hanya 1 kolom
                     ])
-                    ->columnSpan(['lg' => 1]),
+                    ->columnSpan(['lg' => 3]),
             ])
             ->columns(3); // Total 3 kolom utama (2 untuk kiri, 1 untuk kanan)
     }
