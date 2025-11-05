@@ -3,7 +3,6 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\KategoriResource\Pages;
-// PASTIKAN IMPORT MODEL KATEGORI SUDAH BENAR
 use App\Models\Kategori;
 use Filament\Forms;
 use Filament\Forms\Components\Textarea;
@@ -16,18 +15,10 @@ use Filament\Tables\Table;
 
 class KategoriResource extends Resource
 {
-    // PASTIKAN BARIS INI ADA DAN MENUNJUK KE MODEL YANG BENAR
     protected static ?string $model = Kategori::class;
-
-    // Mengatur ikon navigasi (https://heroicons.com/)
     protected static ?string $navigationIcon = 'heroicon-o-tag';
-
-    // Mengelompokkan navigasi
     protected static ?string $navigationGroup = 'Data Master';
-
-    // Mengatur urutan navigasi
     protected static ?int $navigationSort = 2;
-
 
     public static function form(Form $form): Form
     {
@@ -88,5 +79,10 @@ class KategoriResource extends Resource
             'create' => Pages\CreateKategori::route('/create'),
             'edit' => Pages\EditKategori::route('/{record}/edit'),
         ];
+    }
+
+    public static function canViewAny(): bool
+    {
+        return auth()->user()->hasRole('Admin');
     }
 }

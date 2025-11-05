@@ -27,7 +27,7 @@ class BarangKeluarResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-arrow-up-tray';
     protected static ?string $navigationGroup = 'Transaksi Inventori';
-    protected static ?int $navigationSort = 2;
+    protected static ?int $navigationSort = 3;
     protected static ?string $recordTitleAttribute = 'nomor_transaksi';
 
     public static function form(Form $form): Form

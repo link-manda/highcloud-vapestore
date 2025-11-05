@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\VarianProdukResource\RelationManagers;
 
+use Illuminate\Database\Eloquent\Model;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\RelationManagers\RelationManager;
@@ -139,5 +140,20 @@ class StokCabangsRelationManager extends RelationManager
             ->emptyStateHeading('Belum ada stok di cabang')
             ->emptyStateDescription('Klik "Tambah Stok Cabang" untuk menambahkan stok di cabang tertentu.')
             ->emptyStateIcon('heroicon-o-building-storefront');
+    }
+
+    public function canCreate(): bool
+    {
+        return auth()->user()->hasRole('Admin');
+    }
+
+    public function canEdit(Model $record): bool
+    {
+        return auth()->user()->hasRole('Admin');
+    }
+
+    public function canDelete(Model $record): bool
+    {
+        return auth()->user()->hasRole('Admin');
     }
 }

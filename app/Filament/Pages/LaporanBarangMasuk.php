@@ -44,6 +44,11 @@ class LaporanBarangMasuk extends Page implements HasTable
         return auth()->user()->hasRole('Admin');
     }
 
+    public static function shouldRegisterNavigation(): bool
+    {
+        return auth()->check() && auth()->user()->hasRole('Admin');
+    }
+
     /**
      * Definisi Tabel
      */

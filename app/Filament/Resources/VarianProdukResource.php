@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\VarianProdukResource\Pages;
+use Illuminate\Database\Eloquent\Model;
 use App\Filament\Resources\VarianProdukResource\RelationManagers\StokCabangsRelationManager;
 use App\Models\VarianProduk;
 use Filament\Forms\Form;
@@ -139,5 +140,10 @@ class VarianProdukResource extends Resource
             'index' => Pages\ListVarianProduks::route('/'),
             'view' => Pages\ViewVarianProduk::route('/{record}'),
         ];
+    }
+
+    public static function canDelete(Model $record): bool
+    {
+        return auth()->user()->hasRole('Admin');
     }
 }

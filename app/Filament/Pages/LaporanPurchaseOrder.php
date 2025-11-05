@@ -2,7 +2,6 @@
 
 namespace App\Filament\Pages;
 
-// [PERBAIKAN 1]: Impor Exporter kustom yang baru
 use App\Filament\Exports\PurchaseOrderExporter;
 use App\Models\PurchaseOrder;
 use App\Models\Supplier;
@@ -18,7 +17,7 @@ use Filament\Tables\Columns\BadgeColumn;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
 use Illuminate\Database\Eloquent\Builder;
-use Filament\Tables; // Diperlukan untuk BulkAction
+use Filament\Tables;
 use Illuminate\Support\Carbon;
 
 class LaporanPurchaseOrder extends Page implements HasTable
@@ -32,9 +31,6 @@ class LaporanPurchaseOrder extends Page implements HasTable
 
     protected static string $view = 'filament.pages.laporan-purchase-order';
 
-    /**
-     * Otorisasi: Hanya Admin
-     */
     public function mount(): void
     {
         abort_unless(auth()->user()->hasRole('Admin'), 403, 'Anda tidak memiliki izin untuk mengakses halaman ini.');
@@ -45,20 +41,22 @@ class LaporanPurchaseOrder extends Page implements HasTable
         return auth()->user()->hasRole('Admin');
     }
 
+    public static function shouldRegisterNavigation(): bool
+    {
+        return auth()->check() && auth()->user()->hasRole('Admin');
+    }
+
     /**
-     * Query dasar yang sudah difilter
+     * [PERBAIKAN 1]:
+     * Hapus filter default ->whereIn() dari query dasar.
+     * Biarkan query ini mengambil SEMUA PO.
      */
     protected function getTableQuery(): Builder
     {
         return PurchaseOrder::query()
-            ->with(['supplier', 'cabangTujuan', 'userPembuat', 'details'])
-            // Default filter: Hanya tampilkan PO yang masih terbuka
-            ->whereIn('status', ['Completed', 'Partially Received']);
+            ->with(['supplier', 'cabangTujuan', 'userPembuat', 'details']);
     }
 
-    /**
-     * Definisi Tabel
-     */
     public function table(Table $table): Table
     {
         return $table
@@ -81,8 +79,7 @@ class LaporanPurchaseOrder extends Page implements HasTable
                     ->label('Cabang Tujuan')
                     ->searchable()
                     ->sortable(),
-
-                // Kolom Status dengan Badge
+                
                 BadgeColumn::make('status')
                     ->label('Status')
                     ->colors([
@@ -92,16 +89,19 @@ class LaporanPurchaseOrder extends Page implements HasTable
                         'danger' => 'Cancelled',
                     ])
                     ->sortable(),
-
-                // Kolom Kalkulasi Progres
+                
                 TextColumn::make('progres')
                     ->label('Progres Diterima')
                     ->state(function (PurchaseOrder $record): string {
                         $totalDipesan = $record->details->sum('jumlah_pesan');
                         $totalDiterima = $record->details->sum('jumlah_diterima');
+                        // Hindari pembagian nol jika PO tidak memiliki item
+                        if ($totalDipesan == 0) {
+                            return "0 / 0 item";
+                        }
                         return "{$totalDiterima} / {$totalDipesan} item";
                     }),
-
+                
                 TextColumn::make('total_harga')
                     ->label('Total Nilai (IDR)')
                     ->money('IDR')
@@ -109,24 +109,34 @@ class LaporanPurchaseOrder extends Page implements HasTable
                     ->alignEnd(),
             ])
             ->filters([
-                // Filter untuk mengganti default view
+                /**
+                 * [PERBAIKAN 2]:
+                 * Modifikasi SelectFilter 'status'
+                 * 1. Tambahkan ->multiple()
+                 * 2. Tambahkan ->default() untuk menetapkan status default (rancangan proaktif kita)
+                 * 3. Ubah query() untuk menggunakan ->whereIn()
+                 */
                 SelectFilter::make('status')
                     ->label('Status PO')
+                    ->multiple() // <-- Tambahkan ini
                     ->options([
                         'Submitted' => 'Submitted',
                         'Partially Received' => 'Partially Received',
                         'Completed' => 'Completed',
                         'Cancelled' => 'Cancelled',
                     ])
+                    ->default(['Submitted', 'Partially Received']) // <-- Tambahkan default di sini
                     ->query(function (Builder $query, array $data): Builder {
-                        // Jika filter status diisi, gunakan itu.
-                        if (!empty($data['value'])) {
-                            // Hapus filter default 'whereIn' dan ganti dengan filter pilihan user
-                            return $query->withoutGlobalScopes()->where('status', $data['value']);
+                        // $data['values'] akan berisi array (karena ->multiple())
+                        if (empty($data['values'])) {
+                            // Jika user menghapus semua filter, tampilkan semua PO
+                            return $query;
                         }
-                        // Jika filter dikosongkan, kembalikan ke query default
-                        return $query;
+                        // Tampilkan PO yang statusnya ada di dalam array pilihan user
+                        return $query->whereIn('status', $data['values']);
                     }),
+
+                // Filter lain tetap sama
                 Filter::make('tanggal_po')
                     ->form([
                         DatePicker::make('created_from')->label('Dari Tanggal'),
@@ -136,11 +146,11 @@ class LaporanPurchaseOrder extends Page implements HasTable
                         return $query
                             ->when(
                                 $data['created_from'],
-                                fn(Builder $query, $date): Builder => $query->whereDate('tanggal_po', '>=', $date),
+                                fn (Builder $query, $date): Builder => $query->whereDate('tanggal_po', '>=', $date),
                             )
                             ->when(
                                 $data['created_until'],
-                                fn(Builder $query, $date): Builder => $query->whereDate('tanggal_po', '<=', $date),
+                                fn (Builder $query, $date): Builder => $query->whereDate('tanggal_po', '<=', $date),
                             );
                     }),
                 SelectFilter::make('id_supplier')
@@ -157,7 +167,6 @@ class LaporanPurchaseOrder extends Page implements HasTable
                 //
             ])
             ->bulkActions([
-                // [PERBAIKAN 2]: Tentukan Exporter kustom dan aktifkan antrian (queue)
                 Tables\Actions\ExportBulkAction::make()
                     ->exporter(PurchaseOrderExporter::class)
             ])

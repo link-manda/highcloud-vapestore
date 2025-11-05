@@ -6,9 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-// Pastikan import ini ada
 use App\Models\BarangMasukDetail;
-// IMPORT BARU: Diperlukan untuk Accessor
 use Illuminate\Database\Eloquent\Casts\Attribute;
 
 class PurchaseOrder extends Model

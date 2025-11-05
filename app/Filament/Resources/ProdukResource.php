@@ -3,7 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\ProdukResource\Pages;
-// PENTING: Import Relation Manager
+use Illuminate\Database\Eloquent\Model;
 use App\Filament\Resources\ProdukResource\RelationManagers\VarianProduksRelationManager;
 use App\Models\Produk;
 use Filament\Forms;
@@ -78,11 +78,6 @@ class ProdukResource extends Resource
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
-            ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                ]),
             ]);
     }
 
@@ -102,5 +97,20 @@ class ProdukResource extends Resource
             // 'edit' Page akan menampilkan Relation Manager
             'edit' => Pages\EditProduk::route('/{record}/edit'),
         ];
+    }
+
+    public static function canCreate(): bool
+    {
+        return auth()->user()->hasRole('Admin');
+    }
+
+    public static function canEdit(Model $record): bool
+    {
+        return auth()->user()->hasRole('Admin');
+    }
+
+    public static function canDelete(Model $record): bool
+    {
+        return auth()->user()->hasRole('Admin');
     }
 }

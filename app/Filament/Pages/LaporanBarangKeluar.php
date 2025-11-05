@@ -17,8 +17,8 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
 use Illuminate\Database\Eloquent\Builder;
-use Filament\Tables; 
-use Illuminate\Contracts\View\View; 
+use Filament\Tables;
+use Illuminate\Contracts\View\View;
 use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Support\Carbon;
 
@@ -33,9 +33,6 @@ class LaporanBarangKeluar extends Page implements HasTable
 
     protected static string $view = 'filament.pages.laporan-barang-keluar';
 
-    /**
-     * Otorisasi: Hanya Admin
-     */
     public function mount(): void
     {
         abort_unless(auth()->user()->hasRole('Admin'), 403, 'Anda tidak memiliki izin untuk mengakses halaman ini.');
@@ -43,17 +40,18 @@ class LaporanBarangKeluar extends Page implements HasTable
 
     public static function canView(): bool
     {
-        return auth()->user()->hasRole('Admin');
+        return auth()->user()->hasRole('Admin'); // Only Admin can view the menu
     }
 
-    /**
-     * Definisi Tabel
-     */
+    public static function shouldRegisterNavigation(): bool
+    {
+        return auth()->check() && auth()->user()->hasRole('Admin');
+    }
+
     public function table(Table $table): Table
     {
         return $table
             ->query(
-                // Query dasar (tanpa join manual)
                 BarangKeluarDetail::query()
                     ->with([
                         'barangKeluar.cabang',
@@ -98,11 +96,15 @@ class LaporanBarangKeluar extends Page implements HasTable
                     ->sortable(),
             ])
             ->filters([
-                // Filter Rentang Tanggal (menggunakan whereHas)
+                // [PERBAIKAN]: Tambahkan filter default "Hari Ini"
                 Filter::make('tanggal_keluar')
                     ->form([
-                        DatePicker::make('created_from')->label('Dari Tanggal'),
-                        DatePicker::make('created_until')->label('Sampai Tanggal'),
+                        DatePicker::make('created_from')
+                            ->label('Dari Tanggal')
+                            ->default(now()->startOfDay()),
+                        DatePicker::make('created_until')
+                            ->label('Sampai Tanggal')
+                            ->default(now()->endOfDay()),
                     ])
                     ->query(function (Builder $query, array $data): Builder {
                         return $query
@@ -154,23 +156,17 @@ class LaporanBarangKeluar extends Page implements HasTable
                 //
             ])
             ->bulkActions([
-                // [PERBAIKAN 2]: Tentukan Exporter kustom dan aktifkan antrian (queue)
                 Tables\Actions\ExportBulkAction::make()
                     ->exporter(BarangKeluarDetailExporter::class)
             ])
             ->defaultSort('created_at', 'desc');
     }
 
-    /**
-     * Definisi Footer (TETAP SAMA)
-     */
     protected function getTableFooter(): ?View
     {
         $query = $this->getFilteredTableQuery();
-
-        // Cukup hitung total 'subtotal' dari query utama (BarangKeluarDetail)
         $total = $query->sum('subtotal');
-
         return view('filament.pages.laporan-barang-keluar-footer', ['total' => $total]);
     }
+
 }

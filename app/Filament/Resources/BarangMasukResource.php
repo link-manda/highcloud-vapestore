@@ -31,7 +31,7 @@ class BarangMasukResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-arrow-down-tray';
     protected static ?string $navigationGroup = 'Transaksi Inventori';
-    protected static ?int $navigationSort = 1;
+    protected static ?int $navigationSort = 2;
     protected static ?string $recordTitleAttribute = 'nomor_transaksi';
     protected static ?string $navigationLabel = 'Barang Masuk (Supplier)';
 

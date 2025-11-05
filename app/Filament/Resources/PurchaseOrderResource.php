@@ -5,33 +5,28 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\PurchaseOrderResource\Pages;
 use App\Filament\Resources\PurchaseOrderResource\RelationManagers;
 use App\Models\PurchaseOrder;
-use App\Models\VarianProduk; // Import VarianProduk
-use App\Models\StokCabang;   // Import StokCabang
+use App\Models\VarianProduk; 
+use App\Models\StokCabang;   
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Filament\Infolists; // Import Infolists
-use Filament\Infolists\Infolist; // Import Infolist
+use Filament\Infolists; 
+use Filament\Infolists\Infolist; 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
-use Filament\Forms\Get; // Import Get
-use Filament\Forms\Set; // Import Set
-use Illuminate\Support\Number; // Import Number facade
+use Filament\Forms\Get; 
+use Filament\Forms\Set; 
+use Illuminate\Support\Number; 
 
 class PurchaseOrderResource extends Resource
 {
     protected static ?string $model = PurchaseOrder::class;
-
     protected static ?string $navigationIcon = 'heroicon-o-shopping-cart';
-
-    protected static ?string $navigationGroup = 'Pengadaan';
-
+    protected static ?string $navigationGroup = 'Transaksi Inventori';
     protected static ?int $navigationSort = 1;
-
-    protected static ?string $recordTitleAttribute = 'nomor_po'; // Judul record saat dilihat/edit
-
+    protected static ?string $recordTitleAttribute = 'nomor_po';
     public static function form(Form $form): Form
     {
         return $form
@@ -402,5 +397,10 @@ class PurchaseOrderResource extends Resource
             // 'edit' => Pages\EditPurchaseOrder::route('/{record}/edit'), // Komentari/hapus jika hanya bisa diedit saat draft
             'view' => Pages\ViewPurchaseOrder::route('/{record}'), // Ganti edit ke view default
         ];
+    }
+
+    public static function canViewAny(): bool
+    {
+        return auth()->user()->hasRole('Admin');
     }
 }

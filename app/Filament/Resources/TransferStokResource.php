@@ -27,7 +27,7 @@ class TransferStokResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-arrows-right-left';
     protected static ?string $navigationGroup = 'Transaksi Inventori';
-    protected static ?int $navigationSort = 3;
+    protected static ?int $navigationSort = 4;
     protected static ?string $navigationLabel = 'Transfer Stok Cabang';
     protected static ?string $recordTitleAttribute = 'nomor_transfer';
 

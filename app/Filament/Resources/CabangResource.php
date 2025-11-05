@@ -94,4 +94,9 @@ class CabangResource extends Resource
             'edit' => Pages\EditCabang::route('/{record}/edit'),
         ];
     }
+
+    public static function canViewAny(): bool
+    {
+        return auth()->user()->hasRole('Admin');
+    }
 }
