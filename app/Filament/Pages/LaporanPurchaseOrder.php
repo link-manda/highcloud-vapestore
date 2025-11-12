@@ -120,12 +120,14 @@ class LaporanPurchaseOrder extends Page implements HasTable
                     ->label('Status PO')
                     ->multiple() // <-- Tambahkan ini
                     ->options([
+                        'Draft' => 'Draft', // Tambahkan Draft
                         'Submitted' => 'Submitted',
                         'Partially Received' => 'Partially Received',
                         'Completed' => 'Completed',
                         'Cancelled' => 'Cancelled',
                     ])
-                    ->default(['Submitted', 'Partially Received']) // <-- Tambahkan default di sini
+                    // HAPUS atau KOMENTARI baris ini untuk menampilkan semua status:
+                    // ->default(['Submitted', 'Partially Received'])
                     ->query(function (Builder $query, array $data): Builder {
                         // $data['values'] akan berisi array (karena ->multiple())
                         if (empty($data['values'])) {

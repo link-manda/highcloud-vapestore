@@ -9,4 +9,10 @@ use Filament\Resources\Pages\CreateRecord;
 class CreateKategori extends CreateRecord
 {
     protected static string $resource = KategoriResource::class;
+
+    protected function afterCreate(): void
+    {
+        // Redirect to the list page after successful creation
+        $this->redirect(KategoriResource::getUrl('index'));
+    }
 }

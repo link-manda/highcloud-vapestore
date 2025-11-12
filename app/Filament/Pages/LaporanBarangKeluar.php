@@ -96,15 +96,12 @@ class LaporanBarangKeluar extends Page implements HasTable
                     ->sortable(),
             ])
             ->filters([
-                // [PERBAIKAN]: Tambahkan filter default "Hari Ini"
                 Filter::make('tanggal_keluar')
                     ->form([
                         DatePicker::make('created_from')
-                            ->label('Dari Tanggal')
-                            ->default(now()->startOfDay()),
+                            ->label('Dari Tanggal'),
                         DatePicker::make('created_until')
-                            ->label('Sampai Tanggal')
-                            ->default(now()->endOfDay()),
+                            ->label('Sampai Tanggal'),
                     ])
                     ->query(function (Builder $query, array $data): Builder {
                         return $query
@@ -125,18 +122,22 @@ class LaporanBarangKeluar extends Page implements HasTable
                     }),
                 SelectFilter::make('cabang')
                     ->label('Cabang')
-                    ->options(Cabang::pluck('nama_cabang', 'id'))
-                    ->query(fn(Builder $query, array $data) => $query->whereHas(
-                        'barangKeluar',
-                        fn($q) => $q->where('id_cabang', $data['value'])
-                    )),
+                    ->relationship('barangKeluar.cabang', 'nama_cabang')
+                    ->searchable()
+                    ->preload(),
                 SelectFilter::make('kategori')
                     ->label('Kategori')
                     ->options(Kategori::pluck('nama_kategori', 'id'))
-                    ->query(fn(Builder $query, array $data) => $query->whereHas(
-                        'varianProduk.produk',
-                        fn($q) => $q->where('id_kategori', $data['value'])
-                    )),
+                    ->searchable()
+                    ->query(function (Builder $query, array $data): Builder {
+                        if (empty($data['value'])) {
+                            return $query;
+                        }
+                        return $query->whereHas(
+                            'varianProduk.produk',
+                            fn($q) => $q->where('id_kategori', $data['value'])
+                        );
+                    }),
                 Filter::make('varian_produk')
                     ->form([
                         FormSelect::make('id_varian_produk')

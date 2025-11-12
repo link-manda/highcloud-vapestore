@@ -16,4 +16,9 @@ class EditKategori extends EditRecord
             Actions\DeleteAction::make(),
         ];
     }
+
+    protected function afterSave(): void
+    {
+        $this->redirect(KategoriResource::getUrl('index'));
+    }
 }

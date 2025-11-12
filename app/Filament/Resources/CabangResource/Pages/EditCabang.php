@@ -16,4 +16,9 @@ class EditCabang extends EditRecord
             Actions\DeleteAction::make(),
         ];
     }
+
+    protected function afterSave(): void
+    {
+        $this->redirect(CabangResource::getUrl('index'));
+    }
 }
