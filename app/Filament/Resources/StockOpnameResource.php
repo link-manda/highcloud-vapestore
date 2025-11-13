@@ -29,13 +29,11 @@ class StockOpnameResource extends Resource
     protected static ?string $navigationIcon = 'heroicon-o-clipboard-document-check';
     protected static ?string $navigationGroup = 'Transaksi Inventori';
     protected static ?int $navigationSort = 5;
-
-    // Custom navigation label (singular)
     protected static ?string $navigationLabel = 'Stock Opname';
 
     public static function form(Form $form): Form
     {
-        $user = Auth::user();
+        $user = auth()->user();
 
         return $form
             ->schema([
@@ -52,11 +50,24 @@ class StockOpnameResource extends Resource
                             ->preload()
                             ->required()
                             ->reactive()
-                            ->disabled($user->role === 'staf' && $user->id_cabang)
-                            ->default($user->role === 'staf' ? $user->id_cabang : null)
+                            ->disabled($user->role === 'staf') // Disabled untuk staff
+                            ->dehydrated($user->role === 'admin') // Hanya dehydrate untuk admin
+                            ->default($user->role === 'staf' ? $user->id_cabang : null) // Default untuk staff
+                            ->visible($user->role === 'admin') // Hanya tampil untuk admin
                             ->afterStateUpdated(function (Set $set) {
                                 $set('details', []);
                             }),
+                        // Placeholder untuk staff menampilkan cabang mereka
+                        Forms\Components\Placeholder::make('cabang_info')
+                            ->label('Cabang')
+                            ->content(function () use ($user) {
+                                if ($user->role === 'staf' && $user->id_cabang) {
+                                    $cabang = \App\Models\Cabang::find($user->id_cabang);
+                                    return $cabang ? $cabang->nama_cabang : 'Cabang tidak ditemukan';
+                                }
+                                return '';
+                            })
+                            ->visible($user->role === 'staf'),
                         Forms\Components\Hidden::make('id_petugas')
                             ->default(Auth::id()),
                         Forms\Components\Textarea::make('catatan')
@@ -153,6 +164,20 @@ class StockOpnameResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->modifyQueryUsing(function (Builder $query) {
+                if (!auth()->check()) {
+                    return $query;
+                }
+
+                $user = auth()->user();
+
+                // Jika user adalah staff, batasi hanya melihat stock opname dari cabang mereka
+                if ($user->role === 'staf' && $user->id_cabang) {
+                    $query->where('id_cabang', $user->id_cabang);
+                }
+
+                return $query;
+            })
             ->columns([
                 Tables\Columns\TextColumn::make('tanggal_opname')
                     ->label('Tanggal')
@@ -197,9 +222,29 @@ class StockOpnameResource extends Resource
                     ->label('Cabang'),
             ])
             ->actions([
-                Tables\Actions\ViewAction::make(),
+                Tables\Actions\ViewAction::make()
+                    ->visible(function ($record) {
+                        $user = auth()->user();
+                        // Admin bisa lihat semua
+                        if ($user->role === 'admin') {
+                            return true;
+                        }
+                        // Staff hanya bisa lihat stock opname dari cabang mereka
+                        return $user->role === 'staf' && $user->id_cabang && $record->id_cabang === $user->id_cabang;
+                    }),
                 Tables\Actions\EditAction::make()
-                    ->visible(fn ($record) => $record->status === 'draft'),
+                    ->visible(function ($record) {
+                        if ($record->status !== 'draft') {
+                            return false;
+                        }
+                        $user = auth()->user();
+                        // Admin bisa edit semua
+                        if ($user->role === 'admin') {
+                            return true;
+                        }
+                        // Staff hanya bisa edit stock opname dari cabang mereka
+                        return $user->role === 'staf' && $user->id_cabang && $record->id_cabang === $user->id_cabang;
+                    }),
                 Tables\Actions\Action::make('complete')
                     ->label('Selesaikan Opname')
                     ->icon('heroicon-o-check-circle')
@@ -242,12 +287,30 @@ class StockOpnameResource extends Resource
                             ->success()
                             ->send();
                     })
-                    ->visible(fn ($record) => $record->status === 'draft'),
+                    ->visible(function ($record) {
+                        if ($record->status !== 'draft') {
+                            return false;
+                        }
+                        $user = auth()->user();
+                        // Hanya Admin yang bisa complete stock opname
+                        return $user->role === 'admin';
+                    }),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make()
-                        ->visible(fn ($records) => $records && $records->every(fn ($record) => $record->status === 'draft')),
+                        ->visible(function ($records) {
+                            if (!$records || !$records->every(fn ($record) => $record->status === 'draft')) {
+                                return false;
+                            }
+                            $user = auth()->user();
+                            // Admin bisa delete semua
+                            if ($user->role === 'admin') {
+                                return true;
+                            }
+                            // Staff hanya bisa delete stock opname dari cabang mereka
+                            return $records->every(fn ($record) => $record->id_cabang === $user->id_cabang);
+                        }),
                 ]),
             ]);
     }
@@ -317,5 +380,18 @@ class StockOpnameResource extends Resource
             'view' => Pages\ViewStockOpname::route('/{record}'),
             'edit' => Pages\EditStockOpname::route('/{record}/edit'),
         ];
+    }
+
+    public static function canViewAny(): bool
+    {
+        // Untuk navigation visibility, izinkan semua authenticated users melihat menu
+        // Pembatasan akses akan dilakukan di level route dan action
+        return auth()->check();
+    }
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        // Navigation selalu ditampilkan untuk authenticated users
+        return auth()->check();
     }
 }

@@ -11,12 +11,42 @@ class ViewStockOpname extends ViewRecord
 {
     protected static string $resource = StockOpnameResource::class;
 
+    public function mount($record): void
+    {
+        parent::mount($record);
+
+        $user = auth()->user();
+
+        // Admin bisa lihat semua
+        if ($user->role === 'admin') {
+            return;
+        }
+
+        // Staff hanya bisa melihat stock opname dari cabang mereka
+        if ($user->role === 'staf' && $user->id_cabang && $this->record->id_cabang === $user->id_cabang) {
+            return;
+        }
+
+        // Jika tidak memenuhi syarat
+        abort(403, 'Anda tidak memiliki izin untuk mengakses stock opname cabang lain.');
+    }
+
     protected function getHeaderActions(): array
     {
-        return [
-            Actions\EditAction::make()
-                ->visible(fn () => $this->record->status === 'draft'),
-            Actions\Action::make('complete')
+        $user = auth()->user();
+        $actions = [];
+
+        // Edit action - hanya untuk draft dan sesuai role
+        if ($this->record->status === 'draft') {
+            if ($user->role === 'admin' || ($user->role === 'staf' && $user->id_cabang === $this->record->id_cabang)) {
+                $actions[] = Actions\EditAction::make()
+                    ->visible(fn () => $this->record->status === 'draft');
+            }
+        }
+
+        // Complete action - hanya admin
+        if ($user->role === 'admin' && $this->record->status === 'draft') {
+            $actions[] = Actions\Action::make('complete')
                 ->label('Selesaikan Opname')
                 ->icon('heroicon-o-check-circle')
                 ->color('success')
@@ -60,7 +90,9 @@ class ViewStockOpname extends ViewRecord
 
                     $this->redirect($this->getResource()::getUrl('view', ['record' => $this->record]));
                 })
-                ->visible(fn () => $this->record->status === 'draft'),
-        ];
+                ->visible(fn () => $this->record->status === 'draft');
+        }
+
+        return $actions;
     }
 }
