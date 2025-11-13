@@ -13,6 +13,8 @@ use Filament\Pages\Page;
 use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Table;
+use Filament\Tables\Actions\Action;
+use Filament\Tables\Actions\ExportAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
@@ -29,7 +31,7 @@ class LaporanBarangKeluar extends Page implements HasTable
     protected static ?string $navigationIcon = 'heroicon-o-document-arrow-up';
     protected static ?string $navigationLabel = 'Laporan Barang Keluar';
     protected static ?string $navigationGroup = 'Laporan';
-    protected static ?string $title = 'Laporan Barang Keluar (Penjualan)';
+    protected static ?string $title = 'Laporan Barang Keluar';
 
     protected static string $view = 'filament.pages.laporan-barang-keluar';
 
@@ -157,8 +159,20 @@ class LaporanBarangKeluar extends Page implements HasTable
                 //
             ])
             ->bulkActions([
-                Tables\Actions\ExportBulkAction::make()
+
+            ])
+            ->headerActions([
+                ExportAction::make()
                     ->exporter(BarangKeluarDetailExporter::class)
+                    ->label('Export Semua Data')
+                    ->icon('heroicon-o-arrow-down-tray')
+                    ->color('success'),
+                Action::make('refresh')
+                    ->label('Refresh Data')
+                    ->icon('heroicon-o-arrow-path')
+                    ->action(function () {
+                        $this->resetTable();
+                    }),
             ])
             ->defaultSort('created_at', 'desc');
     }

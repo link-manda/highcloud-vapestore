@@ -12,6 +12,8 @@ use Filament\Pages\Page;
 use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Table;
+use Filament\Tables\Actions\Action;
+use Filament\Tables\Actions\ExportAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\BadgeColumn;
 use Filament\Tables\Filters\Filter;
@@ -82,12 +84,7 @@ class LaporanPurchaseOrder extends Page implements HasTable
                 
                 BadgeColumn::make('status')
                     ->label('Status')
-                    ->colors([
-                        'warning' => 'Submitted',
-                        'info' => 'Partially Received',
-                        'success' => 'Completed',
-                        'danger' => 'Cancelled',
-                    ])
+                    ->color(fn(PurchaseOrder $record): string => $record->status_color ?? 'gray')
                     ->sortable(),
                 
                 TextColumn::make('progres')
@@ -169,8 +166,20 @@ class LaporanPurchaseOrder extends Page implements HasTable
                 //
             ])
             ->bulkActions([
-                Tables\Actions\ExportBulkAction::make()
+
+            ])
+            ->headerActions([
+                ExportAction::make()
                     ->exporter(PurchaseOrderExporter::class)
+                    ->label('Export Semua Data')
+                    ->icon('heroicon-o-arrow-down-tray')
+                    ->color('success'),
+                Action::make('refresh')
+                    ->label('Refresh Data')
+                    ->icon('heroicon-o-arrow-path')
+                    ->action(function () {
+                        $this->resetTable();
+                    }),
             ])
             ->defaultSort('tanggal_po', 'desc');
     }

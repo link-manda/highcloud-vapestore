@@ -26,6 +26,9 @@ class CabangResource extends Resource
     // Urutan navigasi (kita letakkan di atas Kategori)
     protected static ?int $navigationSort = 1;
 
+    // Custom navigation label (singular)
+    protected static ?string $navigationLabel = 'Cabang';
+
     public static function form(Form $form): Form
     {
         return $form

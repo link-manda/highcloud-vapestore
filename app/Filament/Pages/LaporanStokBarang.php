@@ -13,6 +13,8 @@ use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Table;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Actions\Action;
+use Filament\Tables\Actions\ExportAction;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Number;
 use Filament\Tables;
@@ -128,9 +130,21 @@ class LaporanStokBarang extends Page implements HasTable
                 // Tidak ada aksi per baris
             ])
             ->bulkActions([
-                // [PERBAIKAN 2]: Tentukan Exporter kustom di sini
-                Tables\Actions\ExportBulkAction::make()
-                    ->exporter(StokCabangExporter::class),
-            ]);
+                
+            ])
+            ->headerActions([
+                ExportAction::make()
+                    ->exporter(StokCabangExporter::class)
+                    ->label('Export Semua Data')
+                    ->icon('heroicon-o-arrow-down-tray')
+                    ->color('success'),
+                Action::make('refresh')
+                    ->label('Refresh Data')
+                    ->icon('heroicon-o-arrow-path')
+                    ->action(function () {
+                        $this->resetTable();
+                    }),
+            ])
+            ->defaultSort('cabang.nama_cabang', 'asc');
     }
 }

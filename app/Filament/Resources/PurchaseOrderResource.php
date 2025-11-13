@@ -27,6 +27,9 @@ class PurchaseOrderResource extends Resource
     protected static ?string $navigationGroup = 'Transaksi Inventori';
     protected static ?int $navigationSort = 1;
     protected static ?string $recordTitleAttribute = 'nomor_po';
+
+    // Custom navigation label (singular)
+    protected static ?string $navigationLabel = 'Purchase Order';
     public static function form(Form $form): Form
     {
         return $form

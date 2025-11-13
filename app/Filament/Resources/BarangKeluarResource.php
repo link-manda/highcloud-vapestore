@@ -30,6 +30,9 @@ class BarangKeluarResource extends Resource
     protected static ?int $navigationSort = 3;
     protected static ?string $recordTitleAttribute = 'nomor_transaksi';
 
+    // Custom navigation label (singular)
+    protected static ?string $navigationLabel = 'Barang Keluar';
+
     public static function form(Form $form): Form
     {
         $user = Auth::user();

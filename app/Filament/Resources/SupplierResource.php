@@ -27,6 +27,9 @@ class SupplierResource extends Resource
     // Urutan navigasi
     protected static ?int $navigationSort = 3;
 
+    // Custom navigation label (singular)
+    protected static ?string $navigationLabel = 'Supplier';
+
     public static function form(Form $form): Form
     {
         return $form

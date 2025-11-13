@@ -32,22 +32,26 @@ class StokCabangsRelationManager extends RelationManager
                     ->searchable()
                     ->preload()
                     ->label('Cabang')
-                    // Tambahkan validasi untuk mencegah duplikasi
+                    ->disabled(fn(string $operation): bool => $operation === 'edit') // Disable saat edit
+                    // Tambahkan validasi untuk mencegah duplikasi - hanya untuk operasi create
                     ->rules([
                         function () {
                             return function (string $attribute, $value, \Closure $fail) {
-                                $exists = \App\Models\StokCabang::where('id_cabang', $value)
-                                    ->where('id_varian_produk', $this->getOwnerRecord()->id)
-                                    ->exists();
+                                // Hanya jalankan validasi saat create, bukan edit
+                                if (request()->route() && str_contains(request()->route()->getName(), 'create')) {
+                                    $exists = \App\Models\StokCabang::where('id_cabang', $value)
+                                        ->where('id_varian_produk', $this->getOwnerRecord()->id)
+                                        ->exists();
 
-                                if ($exists) {
-                                    $cabang = \App\Models\Cabang::find($value);
-                                    $fail("Stok untuk cabang \"{$cabang->nama_cabang}\" sudah ada. Silakan edit stok yang sudah ada.");
+                                    if ($exists) {
+                                        $cabang = \App\Models\Cabang::find($value);
+                                        $fail("Stok untuk cabang \"{$cabang->nama_cabang}\" sudah ada. Silakan edit stok yang sudah ada.");
+                                    }
                                 }
                             };
                         },
                     ])
-                    ->helperText('Pilih cabang yang belum memiliki stok'),
+                    ->helperText(fn(string $operation): ?string => $operation === 'edit' ? 'Cabang tidak bisa diubah saat edit.' : 'Pilih cabang yang belum memiliki stok'),
 
                 TextInput::make('stok_saat_ini')
                     ->numeric()
@@ -88,6 +92,7 @@ class StokCabangsRelationManager extends RelationManager
                     ->label('Tambah Stok Cabang')
                     ->modalHeading('Tambah Stok di Cabang Baru')
                     ->createAnother(false)
+                    ->visible(fn () => auth()->user()->hasRole('Admin')) // Hanya Admin yang bisa tambah stok cabang baru
                     // Tambahkan error handling untuk database constraint
                     ->using(function (array $data) {
                         try {
@@ -113,6 +118,7 @@ class StokCabangsRelationManager extends RelationManager
                     ->label('Tambah Stok')
                     ->icon('heroicon-o-plus')
                     ->color('success')
+                    ->visible(fn () => auth()->user()->hasRole('Admin')) // Hanya Admin yang bisa tambah stok manual
                     ->form([
                         TextInput::make('tambahan_stok')
                             ->label('Jumlah Stok yang Ditambahkan')

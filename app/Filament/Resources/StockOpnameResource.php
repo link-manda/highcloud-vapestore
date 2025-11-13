@@ -29,7 +29,9 @@ class StockOpnameResource extends Resource
     protected static ?string $navigationIcon = 'heroicon-o-clipboard-document-check';
     protected static ?string $navigationGroup = 'Transaksi Inventori';
     protected static ?int $navigationSort = 5;
-    protected static ?string $navigationLabel = 'Stok Opname';
+
+    // Custom navigation label (singular)
+    protected static ?string $navigationLabel = 'Stock Opname';
 
     public static function form(Form $form): Form
     {

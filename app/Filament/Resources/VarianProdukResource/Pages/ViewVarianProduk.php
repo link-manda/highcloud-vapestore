@@ -20,7 +20,8 @@ class ViewVarianProduk extends ViewRecord
                 ->url(fn () => PurchaseOrderResource::getUrl('create', [
                     'varian_id' => $this->record->id,
                 ]))
-                ->color('success'),
+                ->color('success')
+                ->visible(fn () => auth()->user()->hasRole('Admin')), // Hanya Admin yang bisa buat PO
         ];
     }
 }

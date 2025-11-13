@@ -28,6 +28,9 @@ class ProdukResource extends Resource
 
     protected static ?int $navigationSort = 4;
 
+    // Custom navigation label (singular)
+    protected static ?string $navigationLabel = 'Produk';
+
     public static function form(Form $form): Form
     {
         return $form

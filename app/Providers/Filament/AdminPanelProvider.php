@@ -34,9 +34,9 @@ class AdminPanelProvider extends PanelProvider
             ->brandName('Highcloud Inventory') // Mengganti nama
             ->navigationGroups([ // Ini untuk mengelompokkan menu
                 'Data Master',
-                'Manajemen Stok',
-                'Transaksi',
-                'Pengadaan',
+                'Transaksi Inventori',
+                'Laporan',
+                'Manajemen Sistem',
             ])
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')

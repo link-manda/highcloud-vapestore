@@ -61,10 +61,10 @@ class PurchaseOrder extends Model
         return new Attribute(
             get: fn() => match ($this->status) {
                 'Draft' => 'gray',
-                'Dikirim' => 'primary', // Menggunakan 'Dikirim' dari komentar fillable Anda
-                'Sebagian Diterima' => 'warning', // Menggunakan 'Sebagian Diterima'
-                'Selesai' => 'success', // Menggunakan 'Selesai'
-                'Dibatalkan' => 'danger', // Menggunakan 'Dibatalkan'
+                'Submitted' => 'primary',
+                'Partially Received' => 'warning',
+                'Completed' => 'success',
+                'Cancelled' => 'danger',
                 default => 'gray', // WAJIB: Menangani status null atau tidak dikenal
             }
         );
