@@ -43,19 +43,13 @@ return new class extends Migration
 
         // 4. Tabel 'users' (dependen ke 'cabangs')
         // Kita modifikasi dari bawaan Laravel
-        Schema::create('users', function (Blueprint $table) {
-            $table->id();
-            $table->string('name');
-            $table->string('email')->unique();
-            $table->timestamp('email_verified_at')->nullable();
-            $table->string('password');
-            $table->enum('role', ['admin', 'staf'])->default('staf');
+        // 4. Tabel 'users' (dependen ke 'cabangs')
+        // Kita modifikasi dari bawaan Laravel
+        Schema::table('users', function (Blueprint $table) {
+            $table->enum('role', ['admin', 'staf'])->default('staf')->after('password');
 
             // Relasi ke Cabang (Nullable untuk Admin)
-            $table->foreignId('id_cabang')->nullable()->constrained('cabangs')->onDelete('set null');
-
-            $table->rememberToken();
-            $table->timestamps();
+            $table->foreignId('id_cabang')->nullable()->after('role')->constrained('cabangs')->onDelete('set null');
         });
 
         // 5. Tabel 'produks' (dependen ke 'kategoris')
@@ -112,7 +106,10 @@ return new class extends Migration
         Schema::dropIfExists('stok_cabangs');
         Schema::dropIfExists('varian_produks');
         Schema::dropIfExists('produks');
-        Schema::dropIfExists('users');
+        Schema::table('users', function (Blueprint $table) {
+            $table->dropForeign(['id_cabang']);
+            $table->dropColumn(['role', 'id_cabang']);
+        });
         Schema::dropIfExists('suppliers');
         Schema::dropIfExists('kategoris');
         Schema::dropIfExists('cabangs');
