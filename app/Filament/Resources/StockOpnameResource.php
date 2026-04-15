@@ -84,7 +84,7 @@ class StockOpnameResource extends Resource
                                 Forms\Components\Select::make('id_varian_produk')
                                     ->label('Varian Produk')
                                     ->options(function (Get $get) {
-                                        $cabangId = $get('../../id_cabang');
+                                        $cabangId = $get('../../id_cabang') ?? auth()->user()?->id_cabang;
                                         if (!$cabangId) return [];
 
                                         return VarianProduk::whereHas('stokCabangs', function ($query) use ($cabangId) {
@@ -109,7 +109,7 @@ class StockOpnameResource extends Resource
                                     ->required()
                                     ->reactive()
                                     ->afterStateUpdated(function (Set $set, Get $get, $state) {
-                                        $cabangId = $get('../../id_cabang');
+                                        $cabangId = $get('../../id_cabang') ?? auth()->user()?->id_cabang;
                                         if ($cabangId && $state) {
                                             $stok = StokCabang::where('id_cabang', $cabangId)
                                                 ->where('id_varian_produk', $state)
