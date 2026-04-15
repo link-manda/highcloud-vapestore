@@ -5,20 +5,20 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\PurchaseOrderResource\Pages;
 use App\Filament\Resources\PurchaseOrderResource\RelationManagers;
 use App\Models\PurchaseOrder;
-use App\Models\VarianProduk; 
-use App\Models\StokCabang;   
+use App\Models\VarianProduk;
+use App\Models\StokCabang;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Filament\Infolists; 
-use Filament\Infolists\Infolist; 
+use Filament\Infolists;
+use Filament\Infolists\Infolist;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
-use Filament\Forms\Get; 
-use Filament\Forms\Set; 
-use Illuminate\Support\Number; 
+use Filament\Forms\Get;
+use Filament\Forms\Set;
+use Illuminate\Support\Number;
 
 class PurchaseOrderResource extends Resource
 {
@@ -97,7 +97,29 @@ class PurchaseOrderResource extends Resource
                                                 $query->with('produk');
                                             })
                                             ->getOptionLabelFromRecordUsing(fn(VarianProduk $record) => "{$record->produk->nama_produk} - {$record->nama_varian}")
-                                            ->searchable(['nama_varian', 'sku_code', 'produk.nama_produk']) // Cari berdasarkan varian, sku, nama produk induk
+                                            ->searchable()
+                                            ->getSearchResultsUsing(function (string $search): array {
+                                                return VarianProduk::query()
+                                                    ->with('produk')
+                                                    ->where(function (Builder $query) use ($search) {
+                                                        $query->where('nama_varian', 'like', "%{$search}%")
+                                                            ->orWhere('sku_code', 'like', "%{$search}%")
+                                                            ->orWhereHas('produk', function (Builder $produkQuery) use ($search) {
+                                                                $produkQuery->where('nama_produk', 'like', "%{$search}%");
+                                                            });
+                                                    })
+                                                    ->limit(50)
+                                                    ->get()
+                                                    ->mapWithKeys(fn(VarianProduk $record): array => [
+                                                        $record->id => "{$record->produk->nama_produk} - {$record->nama_varian}",
+                                                    ])
+                                                    ->all();
+                                            })
+                                            ->getOptionLabelUsing(function ($value): ?string {
+                                                $record = VarianProduk::with('produk')->find($value);
+
+                                                return $record ? "{$record->produk->nama_produk} - {$record->nama_varian}" : null;
+                                            })
                                             ->preload()
                                             ->required()
                                             ->reactive() // Reaktif agar bisa update harga
