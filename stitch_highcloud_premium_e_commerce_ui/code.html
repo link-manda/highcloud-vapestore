@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Highcloud Vapestore - Tropical Futurism</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700;800&amp;family=Manrope:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        "colors": {
+                "inverse-on-surface": "#4d556b",
+                "surface-bright": "#1f2b49",
+                "on-error": "#490013",
+                "on-tertiary-fixed": "#00163b",
+                "surface-container-high": "#141f38",
+                "primary-fixed-dim": "#a27cff",
+                "surface-container-lowest": "#000000",
+                "on-tertiary-container": "#000311",
+                "secondary-fixed-dim": "#48d4f3",
+                "tertiary-fixed-dim": "#73a2ff",
+                "error": "#ff6e84",
+                "on-secondary-fixed": "#003a45",
+                "error-dim": "#d73357",
+                "inverse-surface": "#faf8ff",
+                "on-secondary-fixed-variant": "#005969",
+                "on-surface-variant": "#a3aac4",
+                "on-primary-fixed": "#000000",
+                "on-secondary-container": "#ecfaff",
+                "primary": "#ba9eff",
+                "primary-container": "#ae8dff",
+                "secondary-dim": "#40ceed",
+                "primary-fixed": "#ae8dff",
+                "on-tertiary": "#001e4a",
+                "secondary-container": "#00687a",
+                "error-container": "#a70138",
+                "outline-variant": "#40485d",
+                "outline": "#6d758c",
+                "on-background": "#dee5ff",
+                "background": "#060e20",
+                "surface-container-highest": "#192540",
+                "on-surface": "#dee5ff",
+                "tertiary-fixed": "#8ab0ff",
+                "on-error-container": "#ffb2b9",
+                "surface-container-low": "#091328",
+                "on-tertiary-fixed-variant": "#00377b",
+                "tertiary-dim": "#699cff",
+                "surface-variant": "#192540",
+                "on-secondary": "#004b58",
+                "on-primary": "#39008c",
+                "on-primary-fixed-variant": "#370086",
+                "on-primary-container": "#2b006e",
+                "secondary": "#53ddfc",
+                "surface-container": "#0f1930",
+                "primary-dim": "#8455ef",
+                "tertiary-container": "#4388fd",
+                "inverse-primary": "#6e3bd7",
+                "secondary-fixed": "#65e1ff",
+                "surface-tint": "#ba9eff",
+                "surface-dim": "#060e20",
+                "tertiary": "#699cff",
+                "surface": "#060e20"
+        },
+        "borderRadius": {
+                "DEFAULT": "0.25rem",
+                "lg": "0.5rem",
+                "xl": "0.75rem",
+                "full": "9999px"
+        },
+        "fontFamily": {
+                "headline": [
+                        "Plus Jakarta Sans"
+                ],
+                "body": [
+                        "Manrope"
+                ],
+                "label": [
+                        "Plus Jakarta Sans"
+                ]
+        }
+      }
+    }
+  }
+</script>
+<style>
+  body {
+    background-color: theme('colors.background');
+    color: theme('colors.on-background');
+    font-family: theme('fontFamily.body');
+  }
+  h1, h2, h3, h4, h5, h6, .headline {
+    font-family: theme('fontFamily.headline');
+  }
+  .label-font {
+    font-family: theme('fontFamily.label');
+  }
+</style>
+</head>
+<body class="antialiased selection:bg-primary-container selection:text-on-primary-container min-h-screen flex flex-col relative overflow-x-hidden">
+<!-- Subtle ambient background glow -->
+<div class="fixed inset-0 pointer-events-none z-[-1] overflow-hidden">
+<div class="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-primary/10 rounded-full blur-[120px] mix-blend-screen opacity-50"></div>
+<div class="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] bg-tertiary/10 rounded-full blur-[150px] mix-blend-screen opacity-40"></div>
+</div>
+<!-- Shared Component: TopNavBar -->
+<nav class="sticky top-0 w-full z-50 bg-[#060e20]/70 backdrop-blur-2xl shadow-[0_1px_20px_rgba(139,92,246,0.1)] shadow-2xl shadow-[#ae8dff]/10">
+<div class="flex justify-between items-center w-full px-8 py-5 max-w-screen-2xl mx-auto">
+<!-- Brand Logo -->
+<div class="text-2xl font-extrabold tracking-tighter text-transparent bg-clip-text bg-gradient-to-br from-[#ba9eff] to-[#8455ef] headline">
+        Highcloud Vapestore
+      </div>
+<!-- Navigation Links (Web) -->
+<div class="hidden md:flex items-center gap-8 font-['Plus_Jakarta_Sans'] font-bold tracking-tight">
+<a class="text-[#ba9eff] border-b-2 border-[#ba9eff] pb-1 hover:text-[#53ddfc] transition-all duration-300" href="#">Shop</a>
+<a class="text-[#dee5ff]/60 hover:text-[#dee5ff] hover:text-[#53ddfc] transition-all duration-300" href="#">Categories</a>
+<a class="text-[#dee5ff]/60 hover:text-[#dee5ff] hover:text-[#53ddfc] transition-all duration-300" href="#">Collections</a>
+<a class="text-[#dee5ff]/60 hover:text-[#dee5ff] hover:text-[#53ddfc] transition-all duration-300" href="#">Locations</a>
+</div>
+<!-- Trailing Icons -->
+<div class="flex items-center gap-6 text-[#ba9eff]">
+<button class="hover:text-[#53ddfc] transition-all duration-300 hover:scale-95 duration-200">
+<span class="material-symbols-outlined" data-icon="shopping_cart">shopping_cart</span>
+</button>
+<button class="hover:text-[#53ddfc] transition-all duration-300 hover:scale-95 duration-200">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+</button>
+<!-- Mobile Menu Toggle -->
+<button class="md:hidden hover:text-[#53ddfc] transition-all duration-300">
+<span class="material-symbols-outlined" data-icon="menu">menu</span>
+</button>
+</div>
+</div>
+</nav>
+<!-- Main Content Area -->
+<main class="flex-grow flex flex-col">
+<!-- 1. Hero Section -->
+<section class="relative w-full min-h-[921px] flex items-center justify-center bg-surface-container-lowest overflow-hidden py-24 px-6 lg:px-12 rounded-b-[3rem] z-10">
+<!-- Atmospheric Background Image -->
+<div class="absolute inset-0 z-0">
+<img alt="hero background abstract liquid" class="w-full h-full object-cover opacity-30 mix-blend-screen mix-blend-lighten pointer-events-none" data-alt="abstract dark fluid background with subtle neon purple and cyan lighting mixing like mist or smoke" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCZbcUUvOqE3e84gmWP0mZuB8fSXaIVbegNwpQD_TFvkT4i-HLN6DtgUQza8ecDzFsOdhZvbWQROQIGVdETjJNy24UJI-fpTLul3GGAr7QR9eGDMMtT4FfYAKQTXcnBvfz7LiBXtuvhTWJeQJVyk1_k7nVJUCJsYJ8Gu7yG_WjzvRD2aerTRo6EZjXWPp0L8uxAfUDdJtyJIPqXJIbMFCAS5KAG5--XBXNkGfuesItutLS_89lYlpnK-oL1BeacvPOH3tcmxHkHp2Iu"/>
+<div class="absolute inset-0 bg-gradient-to-t from-surface-container-lowest via-surface-container-lowest/80 to-transparent"></div>
+<div class="absolute inset-0 bg-gradient-to-r from-surface-container-lowest via-transparent to-surface-container-lowest"></div>
+</div>
+<div class="relative z-10 w-full max-w-7xl mx-auto flex flex-col lg:flex-row items-center gap-16">
+<!-- Hero Text -->
+<div class="w-full lg:w-1/2 flex flex-col items-start text-left space-y-8">
+<div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-surface-variant/60 backdrop-blur-md border border-outline-variant/15 label-font text-xs font-bold tracking-widest text-secondary uppercase">
+<span class="w-2 h-2 rounded-full bg-secondary animate-pulse"></span>
+            New Arrivals
+          </div>
+<h1 class="headline text-5xl md:text-6xl lg:text-7xl xl:text-[5rem] leading-[1.1] font-extrabold tracking-[-0.02em] text-on-background">
+            Elevate Your <br/>
+<span class="text-transparent bg-clip-text bg-gradient-to-br from-primary to-primary-dim">Cloud Experience</span>
+</h1>
+<p class="text-lg md:text-xl text-on-surface-variant max-w-xl font-body leading-relaxed">
+            Discover the pinnacle of vaping luxury. Premium devices, curated e-liquids, and an aesthetic born from the neon mist.
+          </p>
+<div class="flex flex-col sm:flex-row gap-4 pt-4">
+<button class="px-8 py-4 rounded-xl bg-gradient-to-br from-primary to-primary-dim text-on-primary-fixed font-headline font-bold text-lg hover:scale-105 transition-transform duration-300 shadow-[0_0_40px_rgba(174,141,255,0.3)]">
+              Shop Now
+            </button>
+<button class="px-8 py-4 rounded-xl bg-transparent border border-outline-variant/15 text-secondary font-headline font-bold text-lg hover:bg-secondary/10 hover:border-secondary/30 transition-all duration-300 flex items-center justify-center gap-2">
+              Explore Collections
+            </button>
+</div>
+</div>
+<!-- Hero Image/Floating Element -->
+<div class="w-full lg:w-1/2 relative h-[500px] flex items-center justify-center">
+<!-- Ambient Glow for Image -->
+<div class="absolute inset-0 bg-primary-container/20 blur-[80px] rounded-full z-0"></div>
+<img alt="Premium Vape Device" class="relative z-10 w-full h-full object-contain object-center scale-110 drop-shadow-[0_20px_50px_rgba(0,0,0,0.5)] animate-[pulse_4s_ease-in-out_infinite] hover:scale-125 transition-transform duration-700" data-alt="high-end sleek modern vape device floating in mid-air against a dark background with cinematic purple and blue neon edge lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDi7YHHAR7VENfhP2xyT7rBEjvVrXK4OZ6bRkwFl4PrLbTfqKMFOT9DIJse2OQuJiS6HlPsQueGyHjQAgMxV_n-0zSNuWEDcgtOTTdlikGJJ_AJtpbkL9I4aFmxuLMNmDXKA8-V_L7yd_PVyTsQDma1WL0cL0P2cxgVDiUI_QRvyPUlFz4AuIa15fJ0QuxoVN2syTbjKJe7l33rZho1JM7WYNmZsg35H8ev_YKd2gUfHJoYdOdCu98nKanFh95C9QTTxoFyL8qobaQk"/>
+</div>
+</div>
+</section>
+<!-- 2. Featured Products Carousel (Bento-style Grid) -->
+<section class="w-full py-24 px-6 lg:px-12 max-w-screen-2xl mx-auto bg-surface relative z-20">
+<div class="flex flex-col md:flex-row justify-between items-end mb-16 gap-6">
+<div>
+<h2 class="headline text-4xl md:text-5xl font-extrabold tracking-tight text-on-background mb-4">Featured <span class="text-primary-dim">Drops</span></h2>
+<p class="text-on-surface-variant font-body">Curated selections for the modern connoisseur.</p>
+</div>
+<button class="group flex items-center gap-2 text-secondary font-headline font-bold uppercase tracking-wider text-sm hover:text-secondary-fixed transition-colors">
+          View All <span class="material-symbols-outlined group-hover:translate-x-1 transition-transform" data-icon="arrow_forward">arrow_forward</span>
+</button>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+<!-- Product Card 1 -->
+<div class="group relative bg-surface-container/60 backdrop-blur-[20px] rounded-[2rem] p-6 flex flex-col h-[400px] transition-all duration-300 hover:scale-[1.02] hover:bg-surface-variant/80 hover:shadow-[0_0_40px_rgba(174,141,255,0.08)] cursor-pointer overflow-hidden isolate border border-outline-variant/10">
+<div class="absolute top-4 left-4 bg-primary/20 text-primary-fixed text-xs font-bold px-3 py-1 rounded-full label-font tracking-wide">NEW</div>
+<button class="absolute top-4 right-4 text-on-surface-variant hover:text-primary transition-colors z-10">
+<span class="material-symbols-outlined" data-icon="favorite_border">favorite_border</span>
+</button>
+<div class="flex-grow flex items-center justify-center relative mt-8 mb-4">
+<div class="absolute inset-0 bg-primary/5 blur-[40px] rounded-full group-hover:bg-primary/15 transition-colors"></div>
+<img alt="Product 1" class="h-48 w-auto object-contain relative z-10 drop-shadow-2xl group-hover:-translate-y-2 transition-transform duration-500" data-alt="minimalist modern vape pod system in matte black finish, product photography isolated on dark background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCcnBjAG24UEQRxP8TjLbV4rOwmAfzWOKT0l5lZGSJLr79EiQRrjtVkEofhzAbn6zR-J2p4c5t22txVyzPzV4qDWH4JuJ3wtlqCdajH0vilT_1n-tvfhncKABEKyZ3WmiKK_Jx5TuOOkJID3NUJbBantT1O2MrpB-IeYZ6HX0QyREpSyRRVnNDmCRp6bFoQj7k81CTLu2GedLSDInduq6DELNywwhYCzXhkb9VMyqoUFB7Dn4VRdVP1eue6r0lobNYCMS7dBbil5g7P"/>
+</div>
+<div class="flex flex-col gap-1 z-10 relative">
+<h3 class="headline font-bold text-lg text-on-background truncate">Phantom X Pod System</h3>
+<div class="flex justify-between items-end mt-2">
+<span class="text-xl font-bold text-primary-dim font-headline">$45.00</span>
+<button class="w-10 h-10 rounded-full bg-surface-bright flex items-center justify-center text-secondary hover:bg-secondary hover:text-on-secondary-fixed transition-colors">
+<span class="material-symbols-outlined" data-icon="add">add</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Product Card 2 -->
+<div class="group relative bg-surface-container/60 backdrop-blur-[20px] rounded-[2rem] p-6 flex flex-col h-[400px] transition-all duration-300 hover:scale-[1.02] hover:bg-surface-variant/80 hover:shadow-[0_0_40px_rgba(174,141,255,0.08)] cursor-pointer overflow-hidden isolate border border-outline-variant/10">
+<button class="absolute top-4 right-4 text-on-surface-variant hover:text-primary transition-colors z-10">
+<span class="material-symbols-outlined" data-icon="favorite_border">favorite_border</span>
+</button>
+<div class="flex-grow flex items-center justify-center relative mt-8 mb-4">
+<div class="absolute inset-0 bg-tertiary/5 blur-[40px] rounded-full group-hover:bg-tertiary/15 transition-colors"></div>
+<img alt="Product 2" class="h-48 w-auto object-contain relative z-10 drop-shadow-2xl group-hover:-translate-y-2 transition-transform duration-500" data-alt="premium glass e-liquid bottle with neon blue liquid, dark moody lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCv2IlXep-J9RvTq4zYBTimwfp-xLU7MkchU8_Ax0sCILS3dYdyoVxbn4xVCye0kbQlVDg-ALhRmebgFPPxIgeCzEUg__wOSM0wz2-wV_IkUN5s-d0SE6AkxAhVdiJHdWXtamkPzgx8bQiibuY_n_l04mTxPlAEaaI2GTpYrxCsWZc93BywYNk9faZ2-_-RJExBoZ2DTiIzkOOTFgiIpKQxOglY53r2ILf3BAyJYdGIQCnhjTUEISWxY0uB12eUnA6yJl_OHKODThqS"/>
+</div>
+<div class="flex flex-col gap-1 z-10 relative">
+<h3 class="headline font-bold text-lg text-on-background truncate">Neon Mist E-Juice 60ml</h3>
+<div class="flex justify-between items-end mt-2">
+<span class="text-xl font-bold text-primary-dim font-headline">$22.50</span>
+<button class="w-10 h-10 rounded-full bg-surface-bright flex items-center justify-center text-secondary hover:bg-secondary hover:text-on-secondary-fixed transition-colors">
+<span class="material-symbols-outlined" data-icon="add">add</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Product Card 3 -->
+<div class="group relative bg-surface-container/60 backdrop-blur-[20px] rounded-[2rem] p-6 flex flex-col h-[400px] transition-all duration-300 hover:scale-[1.02] hover:bg-surface-variant/80 hover:shadow-[0_0_40px_rgba(174,141,255,0.08)] cursor-pointer overflow-hidden isolate border border-outline-variant/10">
+<div class="absolute top-4 left-4 bg-secondary/20 text-secondary-dim text-xs font-bold px-3 py-1 rounded-full label-font tracking-wide">BEST SELLER</div>
+<button class="absolute top-4 right-4 text-on-surface-variant hover:text-primary transition-colors z-10">
+<span class="material-symbols-outlined" data-icon="favorite_border">favorite_border</span>
+</button>
+<div class="flex-grow flex items-center justify-center relative mt-8 mb-4">
+<div class="absolute inset-0 bg-secondary/5 blur-[40px] rounded-full group-hover:bg-secondary/15 transition-colors"></div>
+<img alt="Product 3" class="h-48 w-auto object-contain relative z-10 drop-shadow-2xl group-hover:-translate-y-2 transition-transform duration-500" data-alt="colorful disposable vape pen with gradient purple to blue metallic finish, dark background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD11SXum6GnU1xpr471sV3gheOZYt9D1pGtbsY1Io4wLHKmAcUJbZu0Bq_8FN0Rx1rJunY3LyNxTJc1bmgn_fACcWzSzx1gHTbnNWIKYT5pxeTqLX1RC4LRm0umt6aXkw_ZBDh7Nyt6AwaIDcFhuqnvCoBMSGg7O9PEOU58Y3rcvAV9qWCOoRZFcSq8BoCA5QSQN0_Fu_YQWXe6F9Fxqs6KuN1r7rfvBrvZKeRTDDAVwax48LRhBAHLeWseL_mo_9lmelQhiQk1dyyZ"/>
+</div>
+<div class="flex flex-col gap-1 z-10 relative">
+<h3 class="headline font-bold text-lg text-on-background truncate">Aura Disposable 5000</h3>
+<div class="flex justify-between items-end mt-2">
+<span class="text-xl font-bold text-primary-dim font-headline">$18.00</span>
+<button class="w-10 h-10 rounded-full bg-surface-bright flex items-center justify-center text-secondary hover:bg-secondary hover:text-on-secondary-fixed transition-colors">
+<span class="material-symbols-outlined" data-icon="add">add</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Product Card 4 -->
+<div class="group relative bg-surface-container/60 backdrop-blur-[20px] rounded-[2rem] p-6 flex flex-col h-[400px] transition-all duration-300 hover:scale-[1.02] hover:bg-surface-variant/80 hover:shadow-[0_0_40px_rgba(174,141,255,0.08)] cursor-pointer overflow-hidden isolate border border-outline-variant/10">
+<button class="absolute top-4 right-4 text-on-surface-variant hover:text-primary transition-colors z-10">
+<span class="material-symbols-outlined" data-icon="favorite_border">favorite_border</span>
+</button>
+<div class="flex-grow flex items-center justify-center relative mt-8 mb-4">
+<div class="absolute inset-0 bg-primary/5 blur-[40px] rounded-full group-hover:bg-primary/15 transition-colors"></div>
+<img alt="Product 4" class="h-48 w-auto object-contain relative z-10 drop-shadow-2xl group-hover:-translate-y-2 transition-transform duration-500" data-alt="high end vape tank accessory made of dark metal and glass, studio lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuANumws8jUVb0V_mPjGA1XLLpvB4CEKg5LV0D3A4DwCYYExGpH-S7558DlLmvEqJt9HGigLNzZn7AZ1TlOwrkUpbeKiKK6bIGshVS3N2-GKrS61OvQJ1Hs8ukn7j3F1GytLDU_d9INVqAi_4lTM_-UZoynPPgIKSDtXzGfcoStOBElkteaWitlK7_a244KEl4F4vrfow4HtZkU_D56UWF3_-sQPkQCOuVxcfO4lZq7pp_ElrfSYzVVHTDGuHhbSSNiFYuq7ktiHUWIL"/>
+</div>
+<div class="flex flex-col gap-1 z-10 relative">
+<h3 class="headline font-bold text-lg text-on-background truncate">Zenith Sub-Ohm Tank</h3>
+<div class="flex justify-between items-end mt-2">
+<span class="text-xl font-bold text-primary-dim font-headline">$35.00</span>
+<button class="w-10 h-10 rounded-full bg-surface-bright flex items-center justify-center text-secondary hover:bg-secondary hover:text-on-secondary-fixed transition-colors">
+<span class="material-symbols-outlined" data-icon="add">add</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- 3. Category Grid -->
+<section class="w-full py-24 px-6 lg:px-12 max-w-screen-2xl mx-auto bg-surface-container-low transition-all duration-700 ease-in-out border-y border-outline-variant/5">
+<div class="text-center mb-16 max-w-2xl mx-auto">
+<h2 class="headline text-3xl md:text-4xl font-extrabold tracking-tight text-on-background mb-4">Explore by <span class="text-secondary-dim">Category</span></h2>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+<!-- Category 1 -->
+<a class="group relative overflow-hidden rounded-[2rem] aspect-square bg-surface-container-highest isolate flex items-end p-8 border border-outline-variant/10" href="#">
+<div class="absolute inset-0 bg-gradient-to-t from-surface-container-lowest via-surface-container-lowest/40 to-transparent z-10"></div>
+<div class="absolute inset-0 z-0">
+<div class="w-full h-full bg-primary/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500 absolute mix-blend-overlay"></div>
+<span class="material-symbols-outlined text-[8rem] text-primary-dim/20 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 group-hover:scale-110 transition-transform duration-700" data-icon="vaping_rooms">vaping_rooms</span>
+</div>
+<div class="relative z-20 w-full flex justify-between items-end">
+<h3 class="headline font-bold text-2xl text-on-background">Disposable</h3>
+<div class="w-10 h-10 rounded-full bg-surface-bright/50 backdrop-blur-md flex items-center justify-center text-on-surface-variant group-hover:bg-primary group-hover:text-on-primary-fixed transition-colors">
+<span class="material-symbols-outlined" data-icon="arrow_forward">arrow_forward</span>
+</div>
+</div>
+</a>
+<!-- Category 2 -->
+<a class="group relative overflow-hidden rounded-[2rem] aspect-square bg-surface-container-highest isolate flex items-end p-8 border border-outline-variant/10" href="#">
+<div class="absolute inset-0 bg-gradient-to-t from-surface-container-lowest via-surface-container-lowest/40 to-transparent z-10"></div>
+<div class="absolute inset-0 z-0">
+<div class="w-full h-full bg-tertiary/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500 absolute mix-blend-overlay"></div>
+<span class="material-symbols-outlined text-[8rem] text-tertiary-dim/20 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 group-hover:scale-110 transition-transform duration-700" data-icon="battery_charging_full">battery_charging_full</span>
+</div>
+<div class="relative z-20 w-full flex justify-between items-end">
+<h3 class="headline font-bold text-2xl text-on-background">Pod Systems</h3>
+<div class="w-10 h-10 rounded-full bg-surface-bright/50 backdrop-blur-md flex items-center justify-center text-on-surface-variant group-hover:bg-tertiary group-hover:text-on-tertiary-fixed transition-colors">
+<span class="material-symbols-outlined" data-icon="arrow_forward">arrow_forward</span>
+</div>
+</div>
+</a>
+<!-- Category 3 -->
+<a class="group relative overflow-hidden rounded-[2rem] aspect-square bg-surface-container-highest isolate flex items-end p-8 border border-outline-variant/10" href="#">
+<div class="absolute inset-0 bg-gradient-to-t from-surface-container-lowest via-surface-container-lowest/40 to-transparent z-10"></div>
+<div class="absolute inset-0 z-0">
+<div class="w-full h-full bg-secondary/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500 absolute mix-blend-overlay"></div>
+<span class="material-symbols-outlined text-[8rem] text-secondary-dim/20 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 group-hover:scale-110 transition-transform duration-700" data-icon="water_drop">water_drop</span>
+</div>
+<div class="relative z-20 w-full flex justify-between items-end">
+<h3 class="headline font-bold text-2xl text-on-background">E-Liquid</h3>
+<div class="w-10 h-10 rounded-full bg-surface-bright/50 backdrop-blur-md flex items-center justify-center text-on-surface-variant group-hover:bg-secondary group-hover:text-on-secondary-fixed transition-colors">
+<span class="material-symbols-outlined" data-icon="arrow_forward">arrow_forward</span>
+</div>
+</div>
+</a>
+<!-- Category 4 -->
+<a class="group relative overflow-hidden rounded-[2rem] aspect-square bg-surface-container-highest isolate flex items-end p-8 border border-outline-variant/10" href="#">
+<div class="absolute inset-0 bg-gradient-to-t from-surface-container-lowest via-surface-container-lowest/40 to-transparent z-10"></div>
+<div class="absolute inset-0 z-0">
+<div class="w-full h-full bg-primary-container/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500 absolute mix-blend-overlay"></div>
+<span class="material-symbols-outlined text-[8rem] text-primary-container/20 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 group-hover:scale-110 transition-transform duration-700" data-icon="hardware">hardware</span>
+</div>
+<div class="relative z-20 w-full flex justify-between items-end">
+<h3 class="headline font-bold text-2xl text-on-background">Accessories</h3>
+<div class="w-10 h-10 rounded-full bg-surface-bright/50 backdrop-blur-md flex items-center justify-center text-on-surface-variant group-hover:bg-primary-container group-hover:text-on-primary-container transition-colors">
+<span class="material-symbols-outlined" data-icon="arrow_forward">arrow_forward</span>
+</div>
+</div>
+</a>
+</div>
+</section>
+<!-- 4. Promo Banner -->
+<section class="w-full relative overflow-hidden h-[614px] min-h-[400px] flex items-center justify-center bg-surface-container-lowest">
+<div class="absolute inset-0 z-0">
+<img alt="Bali Sunset Silhouette" class="w-full h-full object-cover opacity-60" data-alt="stunning tropical sunset sky in deep purple pink and orange hues with dark palm tree silhouettes framing the edges" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCPaqW-QXd1LG8yXdVuwfNgWvuBv2PH_sq7-GzFgAay30vkgSOcqFMnaBHd0g_BzdkAS7LQiqy1XyzeWvvk0GJ37KSpwMnigsFvErsGYYtMbkdUSupQUeu-4toW9UGBXTMBv6f0cHNDJLlu91kYWatbOB37pkutNZ0JsZh68DVcsrdSnzduQf-JuCn8UW36TQNsOJ_3ilSxcoITo1FflpnEqXOXV-y9jrRcSSt3xIyJjV8Cwketq8DvWyAmSnUBT6etaelRbJIi1AFB"/>
+<div class="absolute inset-0 bg-gradient-to-t from-surface-container-lowest to-transparent"></div>
+<div class="absolute inset-0 bg-background/40 backdrop-blur-[2px]"></div>
+</div>
+<div class="relative z-10 text-center px-6 max-w-4xl mx-auto flex flex-col items-center">
+<h2 class="headline text-4xl md:text-6xl font-extrabold tracking-tight text-on-background mb-6 drop-shadow-xl">
+          Bali's Premium <br/>Vape Destination
+        </h2>
+<p class="text-xl text-on-surface mb-8 font-body max-w-2xl text-shadow-sm font-medium">
+          Experience world-class hardware and curated flavors at our flagship stores across the island.
+        </p>
+<button class="px-8 py-4 rounded-xl bg-surface-variant/80 backdrop-blur-xl border border-outline-variant/30 text-secondary font-headline font-bold text-lg hover:bg-secondary hover:text-on-secondary-fixed transition-all duration-300">
+          Find a Store
+        </button>
+</div>
+</section>
+</main>
+<!-- Shared Component: Footer -->
+<footer class="bg-[#000000] w-full py-12 px-8 tonal-transition from surface-container-low flat">
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-7xl mx-auto border-t border-[#40485d]/15 pt-12 font-['Manrope'] text-sm tracking-wide text-[#8B5CF6]">
+<!-- Brand & Copyright -->
+<div class="flex flex-col gap-4">
+<div class="text-xl font-bold text-[#dee5ff] font-['Plus_Jakarta_Sans']">
+          Highcloud Vapestore
+        </div>
+<p class="text-[#dee5ff]/40">
+          © 2024 Highcloud Vapestore. Tropical Futurism Crafted in Bali.
+        </p>
+</div>
+<!-- Links Column 1 -->
+<div class="flex flex-col gap-3">
+<a class="text-[#dee5ff]/40 hover:text-[#53ddfc]" href="#">Privacy Policy</a>
+<a class="text-[#dee5ff]/40 hover:text-[#53ddfc]" href="#">Terms of Service</a>
+</div>
+<!-- Links Column 2 -->
+<div class="flex flex-col gap-3">
+<a class="text-[#dee5ff]/40 hover:text-[#53ddfc]" href="#">Shipping</a>
+<a class="text-[#dee5ff]/40 hover:text-[#53ddfc]" href="#">Contact Us</a>
+</div>
+<!-- Social placeholder -->
+<div class="flex gap-4 items-start">
+<a class="text-[#dee5ff]/40 hover:text-[#53ddfc]" href="#">
+<span class="material-symbols-outlined" data-icon="language">language</span>
+</a>
+</div>
+</div>
+</footer>
+</body></html>

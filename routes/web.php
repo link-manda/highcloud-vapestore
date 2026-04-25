@@ -1,7 +1,9 @@
 <?php
 
+use App\Models\Cabang;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    return view('welcome');
+    $cabangs = Cabang::all();
+    return view('pages.home', compact('cabangs'));
 });

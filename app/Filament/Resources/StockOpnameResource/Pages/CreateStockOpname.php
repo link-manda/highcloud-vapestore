@@ -33,6 +33,9 @@ class CreateStockOpname extends CreateRecord
     {
         $user = auth()->user();
 
+        // Set petugas yang melakukan opname
+        $data['id_petugas'] = $user->id;
+
         // Untuk staff, isi id_cabang dengan cabang mereka secara otomatis
         if ($user->role === 'staf' && $user->id_cabang) {
             $data['id_cabang'] = $user->id_cabang;
