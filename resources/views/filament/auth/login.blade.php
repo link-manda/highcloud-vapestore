@@ -13,6 +13,7 @@
 
         <div class="mx-auto w-full max-w-sm lg:w-96 relative z-10">
             <div class="mb-10 text-center lg:text-left">
+                <img src="{{ asset('storage/cabang-images/logo.jpeg') }}" alt="Logo" class="w-16 h-16 rounded-2xl mb-6 mx-auto lg:ml-0 shadow-lg border border-white/10">
                 <h2 style="font-family: 'Plus Jakarta Sans', sans-serif;" class="text-3xl font-bold tracking-tight text-[#dee5ff]">Welcome Back</h2>
                 <p style="font-family: 'Manrope', sans-serif;" class="mt-2 text-sm text-[#a3aac4]">Please enter your credentials to access the inventory.</p>
             </div>

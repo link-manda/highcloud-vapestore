@@ -58,6 +58,9 @@ class AdminPanelProvider extends PanelProvider
                 '),
             )
             ->brandName('Highcloud Inventory')
+            ->brandLogo(asset('storage/cabang-images/logo.jpeg'))
+            ->brandLogoHeight('2.5rem')
+            ->favicon(asset('storage/cabang-images/logo.jpeg'))
             ->navigationGroups([ // Ini untuk mengelompokkan menu
                 'Data Master',
                 'Transaksi Inventori',

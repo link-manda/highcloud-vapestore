@@ -74,6 +74,7 @@
 </head>
 <body>
     <div class="header">
+        <img src="{{ public_path('storage/cabang-images/logo.jpeg') }}" style="height: 60px; margin-bottom: 10px;">
         <h1>HighCloud VapeStore</h1>
         <p>Laporan Manajemen Inventori & Penjualan</p>
     </div>
