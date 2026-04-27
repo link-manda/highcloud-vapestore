@@ -3,21 +3,6 @@
     <div class="relative hidden w-0 flex-1 lg:block">
         <img class="absolute inset-0 h-full w-full object-cover" src="{{ asset('login-bg.png') }}" alt="Vape Store Interior">
         <div class="absolute inset-0 bg-gradient-to-r from-transparent to-[#060e20]"></div>
-        
-        <!-- Floating Brand Info -->
-        <div class="absolute bottom-12 left-12 z-10 max-w-lg">
-            <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#192540]/60 backdrop-blur-md border border-[#40485d]/15 text-xs font-bold tracking-widest text-[#53ddfc] uppercase mb-6">
-                <span class="w-2 h-2 rounded-full bg-[#53ddfc] animate-pulse"></span>
-                Premium Experience
-            </div>
-            <h1 style="font-family: 'Plus Jakarta Sans', sans-serif;" class="text-5xl font-extrabold tracking-tight text-[#dee5ff] mb-4">
-                Highcloud <br/>
-                <span class="text-transparent bg-clip-text bg-gradient-to-br from-[#ba9eff] to-[#8455ef]">Vapestore</span>
-            </h1>
-            <p style="font-family: 'Manrope', sans-serif;" class="text-lg text-[#a3aac4]">
-                The pinnacle of vaping luxury. Tropical Futurism crafted in Bali.
-            </p>
-        </div>
     </div>
 
     <!-- Right Side: Login Form -->

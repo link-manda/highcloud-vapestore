@@ -14,7 +14,7 @@ class KategoriTerlarisChart extends ChartWidget
     protected int | string | array $columnSpan = 'md:col-span-1';
 
     // Muncul setelah (di kanan) grafik Penjualan
-    protected static ?int $sort = 3;
+    protected static ?int $sort = 4;
 
     protected function getData(): array
     {
@@ -47,8 +47,8 @@ class KategoriTerlarisChart extends ChartWidget
                     'data' => $data->map(fn($value) => $value->total_qty),
 
                     // [PERBAIKAN 2]: Tambahkan warna yang konsisten untuk Bar chart
-                    'backgroundColor' => 'rgba(54, 162, 235, 0.7)', // Biru
-                    'borderColor' => 'rgba(54, 162, 235, 1)',
+                    'backgroundColor' => '#ba9eff', // Neon Purple
+                    'borderColor' => '#8455ef',
                 ],
             ],
             'labels' => $data->map(fn($value) => $value->nama_kategori),

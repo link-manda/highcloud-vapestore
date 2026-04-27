@@ -21,6 +21,7 @@ use Illuminate\Support\Number;
 use Filament\Tables;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Query\Builder as QueryBuilder;
+use App\Services\LaporanPdfService;
 
 class LaporanBarangMasuk extends Page implements HasTable
 {
@@ -135,9 +136,20 @@ class LaporanBarangMasuk extends Page implements HasTable
             ->headerActions([
                 ExportAction::make()
                     ->exporter(BarangMasukExporter::class)
-                    ->label('Export Semua Data')
+                    ->label('Export Excel')
                     ->icon('heroicon-o-arrow-down-tray')
                     ->color('success'),
+                Action::make('export_pdf')
+                    ->label('Export PDF')
+                    ->icon('heroicon-o-document-arrow-down')
+                    ->color('danger')
+                    ->action(function (LaporanPdfService $service) {
+                        return $service->generate(
+                            'pdf.laporan-barang-masuk',
+                            $this->getFilteredTableQuery()->get(),
+                            'laporan-barang-masuk-' . now()->format('Y-m-d')
+                        );
+                    }),
                 Action::make('refresh')
                     ->label('Refresh Data')
                     ->icon('heroicon-o-arrow-path')

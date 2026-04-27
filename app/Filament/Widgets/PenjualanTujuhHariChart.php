@@ -13,8 +13,7 @@ class PenjualanTujuhHariChart extends ChartWidget
     // [PERBAIKAN UKURAN] Ubah ke setengah lebar
     protected int | string | array $columnSpan = 'md:col-span-1';
 
-    // [PERBAIKAN SORTING] Atur urutan agar muncul di kiri
-    protected static ?int $sort = 2;
+    protected static ?int $sort = 3;
 
     protected function getData(): array
     {
@@ -36,8 +35,10 @@ class PenjualanTujuhHariChart extends ChartWidget
                 [
                     'label' => 'Total Penjualan',
                     'data' => $data->map(fn($value) => $value->total),
-                    'borderColor' => 'rgb(75, 192, 192)',
-                    'tension' => 0.1,
+                    'borderColor' => '#53ddfc', // Neon Cyan
+                    'backgroundColor' => 'rgba(83, 221, 252, 0.1)',
+                    'fill' => true,
+                    'tension' => 0.4,
                 ],
             ],
             'labels' => $data->map(fn($value) => \Carbon\Carbon::parse($value->tanggal)->format('d M')),

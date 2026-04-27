@@ -15,7 +15,7 @@ class ProdukStokKritisWidget extends BaseWidget
     // Properti yang mendefinisikan tampilan widget
     protected static ?string $heading = 'Item Stok Kritis (Butuh Segera Restock)';
     protected int | string | array $columnSpan = 'full'; // Agar widget ini mengambil lebar penuh
-    protected static ?int $sort = 3; // Urutan widget di dashboard (setelah Stats dan Grafik)
+    protected static ?int $sort = 5; // Urutan widget di dashboard (setelah Stats dan Grafik)
 
     /**
      * Otorisasi: Hanya Admin yang bisa melihat widget ini

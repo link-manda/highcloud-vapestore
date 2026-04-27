@@ -17,6 +17,7 @@ use Filament\Tables\Actions\ExportAction;
 use Illuminate\Database\Eloquent\Builder;
 use Filament\Tables;
 use Filament\Notifications\Notification;
+use App\Services\LaporanPdfService;
 
 class LaporanStokOpnamePage extends Page implements HasTable
 {
@@ -143,9 +144,20 @@ class LaporanStokOpnamePage extends Page implements HasTable
             ->headerActions([
                 ExportAction::make()
                     ->exporter(StockOpnameExporter::class)
-                    ->label('Export Semua Data')
+                    ->label('Export Excel')
                     ->icon('heroicon-o-arrow-down-tray')
                     ->color('success'),
+                Action::make('export_pdf')
+                    ->label('Export PDF')
+                    ->icon('heroicon-o-document-arrow-down')
+                    ->color('danger')
+                    ->action(function (LaporanPdfService $service) {
+                        return $service->generate(
+                            'pdf.laporan-stok-opname',
+                            $this->getFilteredTableQuery()->get(),
+                            'laporan-stok-opname-' . now()->format('Y-m-d')
+                        );
+                    }),
                 Action::make('refresh')
                     ->label('Refresh Data')
                     ->icon('heroicon-o-arrow-path')

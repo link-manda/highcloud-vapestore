@@ -21,6 +21,7 @@ use Filament\Tables\Filters\SelectFilter;
 use Illuminate\Database\Eloquent\Builder;
 use Filament\Tables;
 use Illuminate\Support\Carbon;
+use App\Services\LaporanPdfService;
 
 class LaporanPurchaseOrder extends Page implements HasTable
 {
@@ -171,9 +172,20 @@ class LaporanPurchaseOrder extends Page implements HasTable
             ->headerActions([
                 ExportAction::make()
                     ->exporter(PurchaseOrderExporter::class)
-                    ->label('Export Semua Data')
+                    ->label('Export Excel')
                     ->icon('heroicon-o-arrow-down-tray')
                     ->color('success'),
+                Action::make('export_pdf')
+                    ->label('Export PDF')
+                    ->icon('heroicon-o-document-arrow-down')
+                    ->color('danger')
+                    ->action(function (LaporanPdfService $service) {
+                        return $service->generate(
+                            'pdf.laporan-purchase-order',
+                            $this->getFilteredTableQuery()->get(),
+                            'laporan-purchase-order-' . now()->format('Y-m-d')
+                        );
+                    }),
                 Action::make('refresh')
                     ->label('Refresh Data')
                     ->icon('heroicon-o-arrow-path')

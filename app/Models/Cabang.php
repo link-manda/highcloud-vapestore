@@ -19,6 +19,7 @@ class Cabang extends Model
         'nama_cabang',
         'alamat_cabang',
         'telepon_cabang',
+        'image',
     ];
 
     /**

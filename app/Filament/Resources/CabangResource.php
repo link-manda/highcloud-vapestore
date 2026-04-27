@@ -5,11 +5,13 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\CabangResource\Pages;
 use App\Models\Cabang;
 use Filament\Forms;
+use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 
@@ -48,6 +50,16 @@ class CabangResource extends Resource
                 TextInput::make('telepon_cabang')
                     ->tel() // Tipe 'tel' untuk format telepon
                     ->maxLength(20),
+
+                // Kolom Input Foto Cabang
+                FileUpload::make('image')
+                    ->label('Foto Cabang')
+                    ->image()
+                    ->directory('cabang-images')
+                    ->visibility('public')
+                    ->imageResizeTargetWidth('500')
+                    ->imagePreviewHeight('150')
+                    ->columnSpanFull(),
             ]);
     }
 
@@ -55,6 +67,11 @@ class CabangResource extends Resource
     {
         return $table
             ->columns([
+                // Kolom Tabel Foto Cabang
+                ImageColumn::make('image')
+                    ->label('Foto')
+                    ->circular(),
+
                 // Kolom Tabel Nama Cabang
                 TextColumn::make('nama_cabang')
                     ->searchable()
