@@ -18,13 +18,13 @@
 
                 <!-- Text Info -->
                 <div>
-                    <h2 class="text-lg font-medium text-gray-400">
+                    <h2 class="text-lg font-medium text-gray-500 dark:text-gray-400">
                         {{ $this->getGreeting() }},
                     </h2>
-                    <h1 class="text-3xl font-extrabold tracking-tight text-white mt-1">
+                    <h1 class="text-3xl font-extrabold tracking-tight text-gray-950 dark:text-white mt-1">
                         {{ $this->getUser()->name }}
                     </h1>
-                    <div class="flex items-center gap-2 mt-3 text-sm font-semibold text-[#53ddfc] bg-[#53ddfc]/10 px-3 py-1 rounded-full w-fit border border-[#53ddfc]/20">
+                    <div class="flex items-center gap-2 mt-3 text-sm font-semibold text-primary-600 dark:text-[#53ddfc] bg-primary-50 dark:bg-[#53ddfc]/10 px-3 py-1 rounded-full w-fit border border-primary-200 dark:border-[#53ddfc]/20">
                         <x-heroicon-s-map-pin class="w-4 h-4" />
                         {{ $this->getCabang()?->nama_cabang ?? 'Pusat' }}
                     </div>
@@ -32,7 +32,7 @@
             </div>
 
             <!-- Stats Quick Peek -->
-            <div class="hidden lg:flex items-center gap-8 border-l border-white/5 pl-8">
+            <div class="hidden lg:flex items-center gap-8 border-l border-gray-200 dark:border-white/5 pl-8">
                 <div class="text-right">
                     <p class="text-xs font-bold uppercase tracking-widest text-gray-500 mb-1">Status Sistem</p>
                     <div class="flex items-center gap-2 justify-end">
@@ -40,19 +40,19 @@
                             <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                             <span class="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
                         </span>
-                        <span class="text-white font-bold tracking-tight">ONLINE</span>
+                        <span class="text-gray-900 dark:text-white font-bold tracking-tight">ONLINE</span>
                     </div>
                 </div>
                 <div class="text-right">
                     <p class="text-xs font-bold uppercase tracking-widest text-gray-500 mb-1">Tanggal</p>
-                    <p class="text-white font-bold tracking-tight">{{ date('d M Y') }}</p>
+                    <p class="text-gray-900 dark:text-white font-bold tracking-tight">{{ date('d M Y') }}</p>
                 </div>
             </div>
         </div>
     </x-filament::section>
 
     <style>
-        .fi-section {
+        .dark .fi-section {
             background: rgba(6, 14, 32, 0.5) !important;
             backdrop-filter: blur(12px) !important;
             border: 1px solid rgba(255, 255, 255, 0.05) !important;

@@ -62,7 +62,7 @@ class StatsOverview extends BaseWidget
             Stat::make('PO Menunggu', $jumlahPOTerbuka . ' Pesanan')
                 ->description('Purchase order status aktif')
                 ->descriptionIcon('heroicon-m-shopping-cart')
-                ->color('info')
+                ->color('warning')
                 ->chart([7, 2, 10, 3, 15, 4, 17]),
         ];
     }

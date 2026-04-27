@@ -29,9 +29,35 @@ class AdminPanelProvider extends PanelProvider
             ->login(\App\Filament\Auth\CustomLogin::class)
             ->databaseNotifications()
             ->colors([
-            'primary' => Color::Indigo,
+                'primary' => Color::Violet,
+                'success' => Color::Emerald,
+                'info'    => Color::Cyan,
+                'warning' => Color::Amber,
+                'danger'  => Color::Rose,
+                'gray'    => Color::Gray,
             ])
-            ->brandName('Highcloud Inventory') // Mengganti nama
+            ->renderHook(
+                'panels::styles.after',
+                fn (): string => \Illuminate\Support\Facades\Blade::render('
+                    <style>
+                        .fi-sidebar-item-active {
+                            background-color: rgba(var(--primary-500), 0.05) !important;
+                            border-left: 4px solid rgb(var(--primary-500)) !important;
+                        }
+                        .fi-sidebar-item-active .fi-sidebar-item-label {
+                            color: rgb(var(--primary-600)) !important;
+                            font-weight: 800 !important;
+                        }
+                        .dark .fi-sidebar-item-active {
+                            background-color: rgba(var(--primary-400), 0.1) !important;
+                        }
+                        .dark .fi-sidebar-item-active .fi-sidebar-item-label {
+                            color: rgb(var(--primary-400)) !important;
+                        }
+                    </style>
+                '),
+            )
+            ->brandName('Highcloud Inventory')
             ->navigationGroups([ // Ini untuk mengelompokkan menu
                 'Data Master',
                 'Transaksi Inventori',

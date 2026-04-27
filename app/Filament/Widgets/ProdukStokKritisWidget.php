@@ -59,7 +59,8 @@ class ProdukStokKritisWidget extends BaseWidget
                     ->searchable(),
                 Tables\Columns\TextColumn::make('cabang.nama_cabang')
                     ->label('Cabang')
-                    ->badge(), // Tampilkan sebagai badge
+                    ->badge()
+                    ->color('info'), // Tampilkan sebagai badge cyan
                 Tables\Columns\TextColumn::make('stok_saat_ini')
                     ->label('Sisa Stok')
                     ->alignEnd()
