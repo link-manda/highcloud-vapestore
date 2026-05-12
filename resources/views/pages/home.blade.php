@@ -1,5 +1,7 @@
 @extends('layouts.gallery')
 
+@section('title', 'Highcloud Vapestore - Bali\'s Premium Vape Destination')
+
 @section('content')
     <!-- Hero Section -->
     @include('components.hero')
