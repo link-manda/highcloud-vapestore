@@ -36,5 +36,6 @@
 <body class="antialiased">
     @include('components.gallery.navbar')
     @yield('content')
+    <x-gallery.footer />
 </body>
 </html>
