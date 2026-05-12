@@ -4,7 +4,7 @@
 
 @section('content')
     <!-- Hero Section -->
-    @include('components.hero')
+    <x-gallery.hero />
 
     <!-- Featured Products -->
     <section id="collections" class="w-full py-24 px-6 lg:px-12 max-w-screen-2xl mx-auto bg-surface relative z-20">
