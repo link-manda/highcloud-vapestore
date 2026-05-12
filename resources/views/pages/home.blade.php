@@ -1,6 +1,4 @@
-@extends('layouts.app')
-
-@section('title', 'Highcloud Vapestore - Bali\'s Premium Vape Destination')
+@extends('layouts.gallery')
 
 @section('content')
     <!-- Hero Section -->
