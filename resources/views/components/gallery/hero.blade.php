@@ -1,8 +1,8 @@
-<section class="relative flex px-16 min-h-[80vh] items-center max-w-[1440px] mx-auto overflow-hidden">
-    <div class="absolute top-[20%] right-[-5%] font-headline font-extrabold text-[15rem] text-[#F0F0F0] select-none pointer-events-none z-0">AESTHETIC</div>
+<section class="relative flex px-6 md:px-16 min-h-[80vh] items-center max-w-[1440px] mx-auto overflow-hidden">
+    <div class="absolute top-[20%] right-[-5%] font-headline font-extrabold text-[8rem] md:text-[15rem] text-[#F0F0F0] select-none pointer-events-none z-0">AESTHETIC</div>
     
     <div class="flex-1 z-10">
-        <h1 class="font-headline font-extrabold text-[7rem] leading-[0.9] tracking-[-0.04em]">
+        <h1 class="font-headline font-extrabold text-[4rem] md:text-[7rem] leading-[0.9] tracking-[-0.04em]">
             <span>Elevate</span><br/>
             <span class="pl-24">The Cloud</span>
         </h1>
