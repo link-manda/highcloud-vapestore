@@ -34,6 +34,7 @@
     </style>
 </head>
 <body class="antialiased">
+    @include('components.gallery.navbar')
     @yield('content')
 </body>
 </html>
