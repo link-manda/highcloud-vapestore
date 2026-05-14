@@ -1,0 +1,185 @@
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700;800&family=Manrope:wght@400;500;600&display=swap');
+
+    .gallery-container {
+        font-family: 'Manrope', sans-serif;
+        background-color: #FAFAFA;
+        color: #000000;
+        padding-bottom: 8rem;
+    }
+
+    .section-header {
+        padding: 8rem 4rem 4rem;
+        max-width: 1440px;
+        margin: 0 auto;
+    }
+
+    .section-label {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        font-weight: 700;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.2em;
+        color: #999;
+        margin-bottom: 1rem;
+        display: block;
+    }
+
+    .section-title {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        font-weight: 800;
+        font-size: 4rem;
+        letter-spacing: -0.03em;
+        margin: 0;
+    }
+
+    .collections-grid {
+        display: grid;
+        grid-template-columns: repeat(12, 1fr);
+        gap: 2rem;
+        max-width: 1440px;
+        margin: 0 auto;
+        padding: 0 4rem;
+    }
+
+    .product-item {
+        position: relative;
+        cursor: pointer;
+        transition: transform 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+    }
+
+    .product-item:hover {
+        transform: translateY(-10px);
+    }
+
+    .product-image-wrap {
+        background: #FFFFFF;
+        padding: 4rem;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        overflow: hidden;
+        position: relative;
+    }
+
+    .product-image {
+        max-width: 100%;
+        height: auto;
+        filter: drop-shadow(0 20px 40px rgba(0,0,0,0.05));
+        transition: transform 0.5s ease;
+    }
+
+    .product-item:hover .product-image {
+        transform: scale(1.1);
+    }
+
+    .product-info {
+        margin-top: 2rem;
+    }
+
+    .product-category {
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: #999;
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+
+    .product-name {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        font-weight: 700;
+        font-size: 1.25rem;
+        margin: 0;
+    }
+
+    /* Asymmetric Layouts */
+    .item-large { grid-column: span 7; }
+    .item-small { grid-column: span 5; margin-top: 8rem; }
+    .item-medium-left { grid-column: span 6; margin-top: -4rem; }
+    .item-medium-right { grid-column: span 6; }
+
+    .view-all-wrap {
+        grid-column: span 12;
+        display: flex;
+        justify-content: center;
+        margin-top: 6rem;
+    }
+
+    .view-all-link {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        font-weight: 800;
+        font-size: 1.5rem;
+        color: #000;
+        text-decoration: none;
+        border-bottom: 2px solid #000;
+        padding-bottom: 0.5rem;
+        transition: opacity 0.3s;
+    }
+
+    .view-all-link:hover {
+        opacity: 0.6;
+    }
+</style>
+
+<div class="gallery-container">
+    <div class="section-header">
+        <span class="section-label">Selected Works</span>
+        <h2 class="section-title">Featured Drops</h2>
+    </div>
+
+    <div class="collections-grid">
+        <!-- Main Highlight -->
+        <div class="product-item item-large">
+            <div class="product-image-wrap">
+                <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuCcnBjAG24UEQRxP8TjLbV4rOwmAfzWOKT0l5lZGSJLr79EiQRrjtVkEofhzAbn6zR-J2p4c5t22txVyzPzV4qDWH4JuJ3wtlqCdajH0vilT_1n-tvfhncKABEKyZ3WmiKK_Jx5TuOOkJID3NUJbBantT1O2MrpB-IeYZ6HX0QyREpSyRRVnNDmCRp6bFoQj7k81CTLu2GedLSDInduq6DELNywwhYCzXhkb9VMyqoUFB7Dn4VRdVP1eue6r0lobNYCMS7dBbil5g7P" 
+                     alt="Phantom X" class="product-image">
+            </div>
+            <div class="product-info">
+                <span class="product-category">Pod System</span>
+                <h3 class="product-name">Phantom X Limited Edition</h3>
+            </div>
+        </div>
+
+        <!-- Secondary Side -->
+        <div class="product-item item-small">
+            <div class="product-image-wrap">
+                <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuCv2IlXep-J9RvTq4zYBTimwfp-xLU7MkchU8_Ax0sCILS3dYdyoVxbn4xVCye0kbQlVDg-ALhRmebgFPPxIgeCzEUg__wOSM0wz2-wV_IkUN5s-d0SE6AkxAhVdiJHdWXtamkPzgx8bQiibuY_n_l04mTxPlAEaaI2GTpYrxCsWZc93BywYNk9faZ2-_-RJExBoZ2DTiIzkOOTFgiIpKQxOglY53r2ILf3BAyJYdGIQCnhjTUEISWxY0uB12eUnA6yJl_OHKODThqS" 
+                     alt="Neon Mist" class="product-image">
+            </div>
+            <div class="product-info">
+                <span class="product-category">E-Liquid</span>
+                <h3 class="product-name">Neon Mist Signature Blend</h3>
+            </div>
+        </div>
+
+        <!-- Third Item (Offset) -->
+        <div class="product-item item-medium-left">
+            <div class="product-image-wrap" style="padding: 6rem;">
+                <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuD11SXum6GnU1xpr471sV3gheOZYt9D1pGtbsY1Io4wLHKmAcUJbZu0Bq_8FN0Rx1rJunY3LyNxTJc1bmgn_fACcWzSzx1gHTbnNWIKYT5pxeTqLX1RC4LRm0umt6aXkw_ZBDh7Nyt6AwaIDcFhuqnvCoBMSGg7O9PEOU58Y3rcvAV9qWCOoRZFcSq8BoCA5QSQN0_Fu_YQWXe6F9Fxqs6KuN1r7rfvBrvZKeRTDDAVwax48LRhBAHLeWseL_mo_9lmelQhiQk1dyyZ" 
+                     alt="Aura" class="product-image">
+            </div>
+            <div class="product-info">
+                <span class="product-category">Disposable</span>
+                <h3 class="product-name">Aura Zero Series</h3>
+            </div>
+        </div>
+
+        <!-- Fourth Item -->
+        <div class="product-item item-medium-right">
+            <div class="product-image-wrap" style="padding: 5rem;">
+                <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuANumws8jUVb0V_mPjGA1XLLpvB4CEKg5LV0D3A4DwCYYExGpH-S7558DlLmvEqJt9HGigLNzZn7AZ1TlOwrkUpbeKiKK6bIGshVS3N2-GKrS61OvQJ1Hs8ukn7j3F1GytLDU_d9INVqAi_4lTM_-UZoynPPgIKSDtXzGfcoStOBElkteaWitlK7_a244KEl4F4vrfow4HtZkU_D56UWF3_-sQPkQCOuVxcfO4lZq7pp_ElrfSYzVVHTDGuHhbSSNiFYuq7ktiHUWIL" 
+                     alt="Zenith" class="product-image">
+            </div>
+            <div class="product-info">
+                <span class="product-category">Accessories</span>
+                <h3 class="product-name">Zenith Titanium Tank</h3>
+            </div>
+        </div>
+
+        <div class="view-all-wrap">
+            <a href="#" class="view-all-link">View All Collections</a>
+        </div>
+    </div>
+</div>

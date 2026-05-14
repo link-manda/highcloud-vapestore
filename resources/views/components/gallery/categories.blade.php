@@ -1,4 +1,4 @@
-<section class="py-24 md:py-32 px-6 md:px-16 max-w-[1440px] mx-auto overflow-hidden">
+<section id="categories" class="py-24 md:py-32 px-6 md:px-16 max-w-[1440px] mx-auto overflow-hidden">
     <div class="mb-16">
         <span class="font-headline font-bold text-[0.75rem] uppercase tracking-[0.2em] text-gallery-dim">Browse Departments</span>
         <h2 class="font-headline font-extrabold text-[2.5rem] md:text-[4rem] leading-tight tracking-tight mt-4">Collections</h2>
@@ -15,10 +15,10 @@
         @endphp
 
         @foreach($categories as $category)
-            <a href="#" class="group relative flex items-center justify-between py-10 md:py-14 border-b border-gallery-border transition-all duration-500 hover:px-8 hover:bg-white">
-                <div class="flex items-center gap-8 md:gap-16">
-                    <span class="font-headline font-bold text-sm md:text-base text-gallery-dim group-hover:text-black transition-colors">{{ $category['id'] }}</span>
-                    <h3 class="font-headline font-extrabold text-3xl md:text-6xl tracking-tighter group-hover:translate-x-4 transition-transform duration-500">{{ $category['name'] }}</h3>
+            <a href="#" class="group relative flex items-center justify-between py-8 md:py-14 border-b border-gallery-border transition-all duration-500 hover:px-6 md:hover:px-8 hover:bg-white">
+                <div class="flex items-center gap-6 md:gap-16">
+                    <span class="font-headline font-bold text-xs md:text-base text-gallery-dim group-hover:text-black transition-colors">{{ $category['id'] }}</span>
+                    <h3 class="font-headline font-extrabold text-2xl sm:text-4xl md:text-6xl tracking-tighter group-hover:translate-x-4 transition-transform duration-500">{{ $category['name'] }}</h3>
                 </div>
                 
                 <div class="flex items-center gap-4 opacity-0 group-hover:opacity-100 transition-all duration-500 -translate-x-8 group-hover:translate-x-0">

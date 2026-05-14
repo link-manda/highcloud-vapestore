@@ -12,5 +12,6 @@
     <!-- Gallery Categories -->
     <x-gallery.categories />
 
-    <!-- Location/Map Section (If needed in Gallery, but keeping it minimal) -->
+    <!-- Location/Map Section -->
+    <x-gallery.location-map :cabangs="$cabangs" />
 @endsection

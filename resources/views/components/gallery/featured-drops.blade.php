@@ -1,4 +1,4 @@
-<section class="py-24 md:py-32 px-6 md:px-16 max-w-[1440px] mx-auto">
+<section id="collections" class="py-24 md:py-32 px-6 md:px-16 max-w-[1440px] mx-auto">
     <div class="mb-16">
         <span class="font-headline font-bold text-[0.75rem] uppercase tracking-[0.2em] text-gallery-dim">Selected Works</span>
         <h2 class="font-headline font-extrabold text-[2.5rem] md:text-[4rem] leading-tight tracking-tight mt-4">Featured Drops</h2>

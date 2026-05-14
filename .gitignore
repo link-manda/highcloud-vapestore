@@ -17,3 +17,9 @@ yarn-error.log
 /.fleet
 /.idea
 /.vscode
+USE_CASE_MAIN.md
+CLASS_DIAGRAM.md
+.gitignore
+USE_CASE_DIAGRAM.md
+GEMINI.md
+.gemini/skills/ui-ux-pro-max/SKILL.md

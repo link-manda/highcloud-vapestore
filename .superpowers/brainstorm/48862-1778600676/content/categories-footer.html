@@ -1,0 +1,210 @@
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700;800&family=Manrope:wght@400;500;600&display=swap');
+
+    .gallery-container {
+        font-family: 'Manrope', sans-serif;
+        background-color: #FAFAFA;
+        color: #000000;
+    }
+
+    /* Categories Section */
+    .categories-section {
+        padding: 8rem 4rem;
+        max-width: 1440px;
+        margin: 0 auto;
+        border-top: 1px solid #EEE;
+    }
+
+    .category-list {
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+        margin-top: 4rem;
+    }
+
+    .category-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 2rem 0;
+        border-bottom: 1px solid #EEE;
+        text-decoration: none;
+        color: inherit;
+        transition: padding 0.4s ease;
+    }
+
+    .category-item:hover {
+        padding-left: 2rem;
+        padding-right: 2rem;
+        background: #FFFFFF;
+        border-bottom-color: #000;
+    }
+
+    .cat-index {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        font-weight: 700;
+        font-size: 0.875rem;
+        color: #999;
+    }
+
+    .cat-name {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        font-weight: 800;
+        font-size: 3rem;
+        letter-spacing: -0.02em;
+    }
+
+    .cat-arrow {
+        font-size: 2rem;
+        opacity: 0;
+        transition: opacity 0.3s, transform 0.3s;
+    }
+
+    .category-item:hover .cat-arrow {
+        opacity: 1;
+        transform: translateX(10px);
+    }
+
+    /* Footer Section */
+    .gallery-footer {
+        background: #000;
+        color: #FFF;
+        padding: 8rem 4rem 4rem;
+    }
+
+    .footer-grid {
+        display: grid;
+        grid-template-columns: 2fr 1fr 1fr 1fr;
+        gap: 4rem;
+        max-width: 1440px;
+        margin: 0 auto;
+    }
+
+    .footer-brand .logo {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        font-weight: 800;
+        font-size: 2rem;
+        letter-spacing: -0.05em;
+        margin-bottom: 2rem;
+        display: block;
+    }
+
+    .footer-brand p {
+        opacity: 0.6;
+        max-width: 300px;
+        line-height: 1.6;
+    }
+
+    .footer-heading {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        font-weight: 700;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.2em;
+        margin-bottom: 2rem;
+        display: block;
+        opacity: 0.4;
+    }
+
+    .footer-links {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .footer-links li {
+        margin-bottom: 1rem;
+    }
+
+    .footer-links a {
+        color: #FFF;
+        text-decoration: none;
+        opacity: 0.6;
+        transition: opacity 0.3s;
+    }
+
+    .footer-links a:hover {
+        opacity: 1;
+    }
+
+    .footer-bottom {
+        margin-top: 8rem;
+        padding-top: 2rem;
+        border-top: 1px solid #333;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        max-width: 1440px;
+        margin-left: auto;
+        margin-right: auto;
+        font-size: 0.75rem;
+        opacity: 0.4;
+    }
+</style>
+
+<div class="gallery-container">
+    <section class="categories-section">
+        <span style="font-family: 'Plus Jakarta Sans'; font-weight: 700; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.2em; color: #999;">Departments</span>
+        <h2 style="font-family: 'Plus Jakarta Sans'; font-weight: 800; font-size: 4rem; letter-spacing: -0.03em; margin: 0;">Explore Categories</h2>
+
+        <div class="category-list">
+            <a href="#" class="category-item">
+                <span class="cat-index">01</span>
+                <span class="cat-name">Pod Systems</span>
+                <span class="cat-arrow">→</span>
+            </a>
+            <a href="#" class="category-item">
+                <span class="cat-index">02</span>
+                <span class="cat-name">E-Liquids</span>
+                <span class="cat-arrow">→</span>
+            </a>
+            <a href="#" class="category-item">
+                <span class="cat-index">03</span>
+                <span class="cat-name">Disposable</span>
+                <span class="cat-arrow">→</span>
+            </a>
+            <a href="#" class="category-item">
+                <span class="cat-index">04</span>
+                <span class="cat-name">Accessories</span>
+                <span class="cat-arrow">→</span>
+            </a>
+        </div>
+    </section>
+
+    <footer class="gallery-footer">
+        <div class="footer-grid">
+            <div class="footer-brand">
+                <span class="logo">Highcloud</span>
+                <p>Curating the finest vaping experiences through a minimalist lens. Based in Bali, serving the connoisseur.</p>
+            </div>
+            <div>
+                <span class="footer-heading">Shop</span>
+                <ul class="footer-links">
+                    <li><a href="#">New Drops</a></li>
+                    <li><a href="#">Best Sellers</a></li>
+                    <li><a href="#">Gift Cards</a></li>
+                </ul>
+            </div>
+            <div>
+                <span class="footer-heading">Support</span>
+                <ul class="footer-links">
+                    <li><a href="#">Contact Us</a></li>
+                    <li><a href="#">Shipping</a></li>
+                    <li><a href="#">Store Locator</a></li>
+                </ul>
+            </div>
+            <div>
+                <span class="footer-heading">Social</span>
+                <ul class="footer-links">
+                    <li><a href="#">Instagram</a></li>
+                    <li><a href="#">Twitter</a></li>
+                    <li><a href="#">Discord</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <span>&copy; 2026 Highcloud Vapestore. All rights reserved.</span>
+            <span>Handcrafted in Bali.</span>
+        </div>
+    </footer>
+</div>

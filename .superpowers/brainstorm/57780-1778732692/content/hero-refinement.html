@@ -1,0 +1,137 @@
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700;800&family=Manrope:wght@400;500;600&display=swap');
+
+    .preview-container {
+        font-family: 'Manrope', sans-serif;
+        background-color: #FAFAFA;
+        color: #000000;
+        padding: 4rem;
+        display: flex;
+        flex-direction: column;
+        gap: 4rem;
+    }
+
+    .mockup-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+    }
+
+    .mockup-card {
+        background: #FFFFFF;
+        border: 1px solid #EEE;
+        border-radius: 12px;
+        overflow: hidden;
+        cursor: pointer;
+        transition: transform 0.3s, box-shadow 0.3s;
+    }
+
+    .mockup-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.05);
+    }
+
+    .mockup-header {
+        padding: 1.5rem;
+        border-bottom: 1px solid #EEE;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .mockup-title {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        font-weight: 800;
+        font-size: 1.25rem;
+    }
+
+    .mockup-tag {
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        padding: 0.25rem 0.75rem;
+        background: #F0F0F0;
+        border-radius: 99px;
+    }
+
+    .mockup-preview {
+        aspect-ratio: 16/9;
+        position: relative;
+        overflow: hidden;
+        background: #FAFAFA;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    /* Option A: Floating Center */
+    .hero-a { padding: 2rem; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+    .hero-a h1 { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 3rem; margin-bottom: 1rem; letter-spacing: -0.04em; font-weight: 800; }
+    .hero-a img { width: 40%; transform: rotate(15deg); filter: drop-shadow(0 30px 60px rgba(0,0,0,0.1)); z-index: 2; }
+    .hero-a .bg-text { position: absolute; font-size: 8rem; font-weight: 800; color: #F0F0F0; z-index: 1; top: 50%; left: 50%; transform: translate(-50%, -50%); white-space: nowrap; font-family: 'Plus Jakarta Sans', sans-serif; }
+
+    /* Option B: Overlapping Detail */
+    .hero-b { padding: 2rem; width: 100%; height: 100%; display: flex; align-items: center; justify-content: space-between; gap: 2rem; }
+    .hero-b .text { flex: 1; text-align: left; }
+    .hero-b h1 { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 3.5rem; line-height: 0.9; margin-bottom: 1.5rem; font-weight: 800; letter-spacing: -0.05em; }
+    .hero-b .image-wrap { flex: 1; position: relative; display: flex; justify-content: flex-end; }
+    .hero-b img { width: 90%; transform: rotate(-10deg); filter: drop-shadow(0 40px 80px rgba(0,0,0,0.1)); }
+    .hero-b .tag-label { position: absolute; top: 20%; left: -10%; background: #000; color: #FFF; padding: 0.5rem 1.5rem; font-weight: 700; font-size: 0.75rem; transform: rotate(-90deg); }
+
+    .subtitle { margin-top: 1rem; color: #666; font-size: 1.125rem; }
+</style>
+
+<div class="preview-container">
+    <div>
+        <h2 style="font-family: 'Plus Jakarta Sans'; font-weight: 800; font-size: 2.5rem; margin-bottom: 0.5rem;">Refining The Gallery Hero</h2>
+        <p class="subtitle">Pilih pendekatan layout yang paling sesuai untuk visual produk Highcloud yang baru.</p>
+    </div>
+
+    <div class="mockup-grid">
+        <!-- Option A -->
+        <div class="mockup-card" onclick="alert('Anda memilih Option A: The Floating Center')">
+            <div class="mockup-header">
+                <span class="mockup-title">Option A: The Floating Center</span>
+                <span class="mockup-tag">Symmetric</span>
+            </div>
+            <div class="mockup-preview">
+                <div class="hero-a">
+                    <div class="bg-text">PURE</div>
+                    <h1>ELEVATE</h1>
+                    <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuDi7YHHAR7VENfhP2xyT7rBEjvVrXK4OZ6bRkwFl4PrLbTfqKMFOT9DIJse2OQuJiS6HlPsQueGyHjQAgMxV_n-0zSNuWEDcgtOTTdlikGJJ_AJtpbkL9I4aFmxuLMNmDXKA8-V_L7yd_PVyTsQDma1WL0cL0P2cxgVDiUI_QRvyPUlFz4AuIa15fJ0QuxoVN2syTbjKJe7l33rZho1JM7WYNmZsg35H8ev_YKd2gUfHJoYdOdCu98nKanFh95C9QTTxoFyL8qobaQk" alt="Vape">
+                    <p style="margin-top: 1rem; font-size: 0.875rem; color: #888;">Minimalist. Balanced. Focused.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Option B -->
+        <div class="mockup-card" onclick="alert('Anda memilih Option B: The Overlapping Detail')">
+            <div class="mockup-header">
+                <span class="mockup-title">Option B: Editorial Overlap</span>
+                <span class="mockup-tag">Asymmetric</span>
+            </div>
+            <div class="mockup-preview">
+                <div class="hero-b">
+                    <div class="text">
+                        <h1>THE<br/>GALLERY</h1>
+                        <p style="font-size: 0.875rem; color: #888;">Curated luxury vaping experience.</p>
+                    </div>
+                    <div class="image-wrap">
+                        <div class="tag-label">NEW ARRIVAL</div>
+                        <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuDi7YHHAR7VENfhP2xyT7rBEjvVrXK4OZ6bRkwFl4PrLbTfqKMFOT9DIJse2OQuJiS6HlPsQueGyHjQAgMxV_n-0zSNuWEDcgtOTTdlikGJJ_AJtpbkL9I4aFmxuLMNmDXKA8-V_L7yd_PVyTsQDma1WL0cL0P2cxgVDiUI_QRvyPUlFz4AuIa15fJ0QuxoVN2syTbjKJe7l33rZho1JM7WYNmZsg35H8ev_YKd2gUfHJoYdOdCu98nKanFh95C9QTTxoFyL8qobaQk" alt="Vape">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div style="background: #000; color: #FFF; padding: 2rem; border-radius: 12px; margin-top: 2rem;">
+        <h3 style="font-family: 'Plus Jakarta Sans'; font-weight: 800; margin-bottom: 1rem;">Rekomendasi Gambar</h3>
+        <p style="opacity: 0.8; font-size: 0.875rem; line-height: 1.6;">
+            Saya telah mencari referensi gambar yang sesuai. Untuk mendapatkan efek "The Gallery", kita memerlukan gambar produk dengan resolusi tinggi (3000px+) dengan background transparan murni. 
+            <br/><br/>
+            <strong>Saran Visual:</strong> Vape device dengan material metalik atau kaca transparan yang menangkap cahaya lembut, dipotret dari sudut miring (3/4 view) untuk memberikan kedalaman.
+        </p>
+    </div>
+</div>

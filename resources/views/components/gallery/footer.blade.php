@@ -31,7 +31,7 @@
                 <h4 class="font-headline font-bold text-sm uppercase tracking-[0.2em] mb-8 text-gallery-dim">Company</h4>
                 <ul class="space-y-4">
                     <li><a href="#" class="font-body hover:text-gallery-dim transition-colors">Our Story</a></li>
-                    <li><a href="#" class="font-body hover:text-gallery-dim transition-colors">Locations</a></li>
+                    <li><a href="#locations" class="font-body hover:text-gallery-dim transition-colors">Locations</a></li>
                     <li><a href="#" class="font-body hover:text-gallery-dim transition-colors">Wholesale</a></li>
                     <li><a href="#" class="font-body hover:text-gallery-dim transition-colors">Careers</a></li>
                     <li><a href="#" class="font-body hover:text-gallery-dim transition-colors">Contact</a></li>
@@ -52,12 +52,12 @@
         </div>
 
         <!-- Newsletter & Copyright -->
-        <div class="border-t border-white/10 pt-12 flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
+        <div class="border-t border-white/10 pt-12 flex flex-col md:flex-row justify-between items-start md:items-center gap-12 md:gap-8">
             <div class="max-w-md w-full">
                 <h4 class="font-headline font-bold text-sm uppercase tracking-[0.2em] mb-4">Join The Gallery</h4>
-                <form class="flex border-b border-white/20 focus-within:border-white transition-colors py-2">
-                    <input type="email" placeholder="Email Address" class="bg-transparent border-none focus:ring-0 text-white placeholder:text-gallery-dim w-full font-body">
-                    <button type="submit" class="font-headline font-bold uppercase tracking-widest text-xs hover:text-gallery-dim transition-colors">Subscribe</button>
+                <form class="flex flex-col sm:flex-row border-b border-white/20 focus-within:border-white transition-colors py-2 gap-4 sm:gap-0">
+                    <input type="email" placeholder="Email Address" class="bg-transparent border-none focus:ring-0 text-white placeholder:text-gallery-dim w-full font-body p-0">
+                    <button type="submit" class="font-headline font-bold uppercase tracking-widest text-xs hover:text-gallery-dim transition-colors whitespace-nowrap text-left sm:text-right">Subscribe</button>
                 </form>
             </div>
             
