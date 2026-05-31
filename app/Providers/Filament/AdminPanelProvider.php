@@ -2,6 +2,8 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\Auth\RequestPasswordReset;
+use App\Filament\Auth\ResetPassword;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
@@ -27,14 +29,15 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
             ->login(\App\Filament\Auth\CustomLogin::class)
+            ->passwordReset(RequestPasswordReset::class, ResetPassword::class)
             ->databaseNotifications()
             ->colors([
                 'primary' => Color::Violet,
                 'success' => Color::Emerald,
-                'info'    => Color::Cyan,
+                'info' => Color::Cyan,
                 'warning' => Color::Amber,
-                'danger'  => Color::Rose,
-                'gray'    => Color::Gray,
+                'danger' => Color::Rose,
+                'gray' => Color::Gray,
             ])
             ->renderHook(
                 'panels::styles.after',

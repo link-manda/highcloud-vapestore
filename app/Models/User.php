@@ -3,19 +3,19 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Notifications\ResetPasswordNotification;
+use Filament\Models\Contracts\FilamentUser;
+use Filament\Panel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
-use Filament\Models\Contracts\FilamentUser;
-use Filament\Panel;
-
 
 // 2. IMPLEMENTS KONTRAK FILAMENT USER
 class User extends Authenticatable implements FilamentUser
 {
-    use HasFactory, Notifiable, HasRoles;
+    use HasFactory, HasRoles, Notifiable;
 
     // 3. GUNAKAN TRAIT
     use HasRoles;
@@ -72,9 +72,14 @@ class User extends Authenticatable implements FilamentUser
     {
         // Izinkan semua user yang terautentikasi mengakses panel.
         // Pembatasan fitur akan diatur via Resource dan Policy.
-        // Jika Anda ingin membatasi staf agar tidak bisa login, 
+        // Jika Anda ingin membatasi staf agar tidak bisa login,
         // Anda bisa tambahkan logika role di sini.
         // Untuk saat ini, kita izinkan semua.
         return true;
+    }
+
+    public function sendPasswordResetNotification($token): void
+    {
+        $this->notify(new ResetPasswordNotification($token));
     }
 }

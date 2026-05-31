@@ -1,4 +1,12 @@
-<section id="categories" class="py-24 md:py-32 px-6 md:px-16 max-w-[1440px] mx-auto overflow-hidden">
+<section id="categories" x-data="{ 
+    hoveredImage: null, 
+    mouseX: 0, 
+    mouseY: 0,
+    updateMouse(e) {
+        this.mouseX = e.clientX;
+        this.mouseY = e.clientY;
+    }
+}" @mousemove="updateMouse($event)" class="py-24 md:py-32 px-6 md:px-16 max-w-[1440px] mx-auto overflow-hidden relative">
     <div class="mb-16">
         <span class="font-headline font-bold text-[0.75rem] uppercase tracking-[0.2em] text-gallery-dim">Browse Departments</span>
         <h2 class="font-headline font-extrabold text-[2.5rem] md:text-[4rem] leading-tight tracking-tight mt-4">Collections</h2>
@@ -7,15 +15,38 @@
     <div class="flex flex-col border-t border-gallery-border">
         @php
             $categories = [
-                ['id' => '01', 'name' => 'Disposable', 'count' => '42'],
-                ['id' => '02', 'name' => 'Pod Systems', 'count' => '18'],
-                ['id' => '03', 'name' => 'E-Liquid', 'count' => '124'],
-                ['id' => '04', 'name' => 'Accessories', 'count' => '25'],
+                [
+                    'id' => '01', 
+                    'name' => 'Disposable', 
+                    'count' => '42',
+                    'image' => 'https://images.unsplash.com/photo-1574044536246-12002888a75a?auto=format&fit=crop&q=80&w=600'
+                ],
+                [
+                    'id' => '02', 
+                    'name' => 'Pod Systems', 
+                    'count' => '18',
+                    'image' => 'https://images.unsplash.com/photo-1552819056-421522630735?auto=format&fit=crop&q=80&w=600'
+                ],
+                [
+                    'id' => '03', 
+                    'name' => 'E-Liquid', 
+                    'count' => '124',
+                    'image' => 'https://images.unsplash.com/photo-1594465919760-441fe5908ab0?auto=format&fit=crop&q=80&w=600'
+                ],
+                [
+                    'id' => '04', 
+                    'name' => 'Accessories', 
+                    'count' => '25',
+                    'image' => 'https://images.unsplash.com/photo-1510166089176-b57564a542b1?auto=format&fit=crop&q=80&w=600'
+                ],
             ];
         @endphp
 
         @foreach($categories as $category)
-            <a href="#" class="group relative flex items-center justify-between py-8 md:py-14 border-b border-gallery-border transition-all duration-500 hover:px-6 md:hover:px-8 hover:bg-white">
+            <a href="#" 
+               @mouseenter="hoveredImage = '{{ $category['image'] }}'" 
+               @mouseleave="hoveredImage = null"
+               class="group relative flex items-center justify-between py-8 md:py-14 border-b border-gallery-border transition-all duration-500 hover:px-6 md:hover:px-8 hover:bg-white z-10">
                 <div class="flex items-center gap-6 md:gap-16">
                     <span class="font-headline font-bold text-xs md:text-base text-gallery-dim group-hover:text-black transition-colors">{{ $category['id'] }}</span>
                     <h3 class="font-headline font-extrabold text-2xl sm:text-4xl md:text-6xl tracking-tighter group-hover:translate-x-4 transition-transform duration-500">{{ $category['name'] }}</h3>
@@ -31,6 +62,20 @@
             </a>
         @endforeach
     </div>
+
+    <!-- Floating Hover Image -->
+    <template x-if="hoveredImage">
+        <div class="fixed pointer-events-none z-50 overflow-hidden rounded-lg shadow-2xl transition-all duration-300 ease-out"
+             :style="`left: ${mouseX + 20}px; top: ${mouseY - 150}px; width: 300px; height: 400px;`"
+             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="opacity-0 scale-90"
+             x-transition:enter-end="opacity-100 scale-100"
+             x-transition:leave="transition ease-in duration-200"
+             x-transition:leave-start="opacity-100 scale-100"
+             x-transition:leave-end="opacity-0 scale-90">
+            <img :src="hoveredImage" class="w-full h-full object-cover" alt="Category Preview">
+        </div>
+    </template>
 
     <div class="mt-24 grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
         <p class="font-body text-xl text-gallery-muted leading-relaxed">
