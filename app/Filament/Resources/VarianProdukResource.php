@@ -3,27 +3,32 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\VarianProdukResource\Pages;
-use Illuminate\Database\Eloquent\Model;
 use App\Filament\Resources\VarianProdukResource\RelationManagers\StokCabangsRelationManager;
 use App\Models\VarianProduk;
 use Filament\Forms\Form;
+use Filament\Infolists\Components\Section as InfolistSection;
+use Filament\Infolists\Components\TextEntry;
+use Filament\Infolists\Infolist;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
-use Filament\Infolists\Infolist;
-use Filament\Infolists\Components\Section as InfolistSection;
-use Filament\Infolists\Components\TextEntry;
+use Illuminate\Database\Eloquent\Model;
 
 class VarianProdukResource extends Resource
 {
     protected static ?string $model = VarianProduk::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-archive-box';
+
     protected static ?string $label = 'Varian (SKU)';
+
     protected static ?string $pluralLabel = 'Varian (SKU)';
+
     protected static ?string $navigationLabel = 'Stok Varian (SKU)';
+
     protected static ?string $navigationGroup = 'Data Master';
+
     protected static ?int $navigationSort = 5;
 
     public static function canCreate(): bool
@@ -65,7 +70,7 @@ class VarianProdukResource extends Resource
                                 return $record->stokCabangs->sum('stok_saat_ini');
                             })
                             ->numeric()
-                            ->formatStateUsing(fn($state) => number_format($state, 0)),
+                            ->formatStateUsing(fn ($state) => number_format($state, 0)),
 
                         TextEntry::make('jumlah_cabang')
                             ->label('Jumlah Cabang yang Memiliki Stok')
@@ -105,8 +110,8 @@ class VarianProdukResource extends Resource
                     })
                     ->numeric()
                     ->sortable()
-                    ->formatStateUsing(fn($state) => number_format($state, 0))
-                    ->color(fn($state) => $state > 0 ? 'success' : 'danger'),
+                    ->formatStateUsing(fn ($state) => number_format($state, 0))
+                    ->color(fn ($state) => $state > 0 ? 'success' : 'danger'),
 
                 TextColumn::make('cabang_count')
                     ->label('Jumlah Cabang')
@@ -120,7 +125,8 @@ class VarianProdukResource extends Resource
             ])
             ->actions([
                 Tables\Actions\ViewAction::make()
-                    ->label('Atur Stok'),
+                    ->label('Atur Stok')
+                    ->visible(fn () => auth()->user()->hasRole('Admin')),
             ])
             ->bulkActions([
                 //

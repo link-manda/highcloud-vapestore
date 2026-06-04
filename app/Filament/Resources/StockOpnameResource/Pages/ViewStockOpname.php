@@ -4,8 +4,8 @@ namespace App\Filament\Resources\StockOpnameResource\Pages;
 
 use App\Filament\Resources\StockOpnameResource;
 use Filament\Actions;
-use Filament\Resources\Pages\ViewRecord;
 use Filament\Notifications\Notification;
+use Filament\Resources\Pages\ViewRecord;
 
 class ViewStockOpname extends ViewRecord
 {
@@ -15,15 +15,14 @@ class ViewStockOpname extends ViewRecord
     {
         parent::mount($record);
 
-        $user = auth()->user();
-
         // Admin bisa lihat semua
-        if ($user->role === 'admin') {
+        if (StockOpnameResource::isAdmin()) {
             return;
         }
 
         // Staff hanya bisa melihat stock opname dari cabang mereka
-        if ($user->role === 'staf' && $user->id_cabang && $this->record->id_cabang === $user->id_cabang) {
+        $user = auth()->user();
+        if (StockOpnameResource::isStaf() && $user->id_cabang && $this->record->id_cabang === $user->id_cabang) {
             return;
         }
 
@@ -33,19 +32,18 @@ class ViewStockOpname extends ViewRecord
 
     protected function getHeaderActions(): array
     {
-        $user = auth()->user();
         $actions = [];
 
         // Edit action - hanya untuk draft dan sesuai role
         if ($this->record->status === 'draft') {
-            if ($user->role === 'admin' || ($user->role === 'staf' && $user->id_cabang === $this->record->id_cabang)) {
+            if (StockOpnameResource::isAdmin() || (StockOpnameResource::isStaf() && auth()->user()?->id_cabang === $this->record->id_cabang)) {
                 $actions[] = Actions\EditAction::make()
                     ->visible(fn () => $this->record->status === 'draft');
             }
         }
 
         // Complete action - hanya admin
-        if ($user->role === 'admin' && $this->record->status === 'draft') {
+        if (StockOpnameResource::isAdmin() && $this->record->status === 'draft') {
             $actions[] = Actions\Action::make('complete')
                 ->label('Selesaikan Opname')
                 ->icon('heroicon-o-check-circle')
@@ -71,7 +69,7 @@ class ViewStockOpname extends ViewRecord
                             $newStok = $detail->stok_fisik;
 
                             $stokCabang->update([
-                                'stok_saat_ini' => $newStok
+                                'stok_saat_ini' => $newStok,
                             ]);
 
                             $updatedCount++;

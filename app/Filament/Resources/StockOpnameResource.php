@@ -3,32 +3,33 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\StockOpnameResource\Pages;
-use App\Filament\Resources\StockOpnameResource\RelationManagers;
-use App\Models\StockOpname;
 use App\Models\Cabang;
-use App\Models\VarianProduk;
+use App\Models\StockOpname;
 use App\Models\StokCabang;
+use App\Models\VarianProduk;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Forms\Get;
+use Filament\Forms\Set;
+use Filament\Infolists;
+use Filament\Infolists\Infolist;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Filament\Infolists;
-use Filament\Infolists\Infolist;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Facades\Auth;
-use Filament\Forms\Get;
-use Filament\Forms\Set;
-use Filament\Notifications\Notification;
 
 class StockOpnameResource extends Resource
 {
     protected static ?string $model = StockOpname::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-clipboard-document-check';
+
     protected static ?string $navigationGroup = 'Transaksi Inventori';
+
     protected static ?int $navigationSort = 5;
+
     protected static ?string $navigationLabel = 'Stock Opname';
 
     public static function form(Form $form): Form
@@ -50,10 +51,10 @@ class StockOpnameResource extends Resource
                             ->preload()
                             ->required()
                             ->reactive()
-                            ->disabled($user->role === 'staf') // Disabled untuk staff
-                            ->dehydrated($user->role === 'admin') // Hanya dehydrate untuk admin
-                            ->default($user->role === 'staf' ? $user->id_cabang : null) // Default untuk staff
-                            ->visible($user->role === 'admin') // Hanya tampil untuk admin
+                            ->disabled(static::isStaf()) // Disabled untuk staff
+                            ->dehydrated(static::isAdmin()) // Hanya dehydrate untuk admin
+                            ->default(static::isStaf() ? $user->id_cabang : null) // Default untuk staff
+                            ->visible(static::isAdmin()) // Hanya tampil untuk admin
                             ->afterStateUpdated(function (Set $set) {
                                 $set('details', []);
                             }),
@@ -61,13 +62,15 @@ class StockOpnameResource extends Resource
                         Forms\Components\Placeholder::make('cabang_info')
                             ->label('Cabang')
                             ->content(function () use ($user) {
-                                if ($user->role === 'staf' && $user->id_cabang) {
+                                if (static::isStaf() && $user->id_cabang) {
                                     $cabang = \App\Models\Cabang::find($user->id_cabang);
+
                                     return $cabang ? $cabang->nama_cabang : 'Cabang tidak ditemukan';
                                 }
+
                                 return '';
                             })
-                            ->visible($user->role === 'staf'),
+                            ->visible(static::isStaf()),
                         Forms\Components\Hidden::make('id_petugas')
                             ->default(Auth::id()),
                         Forms\Components\Textarea::make('catatan')
@@ -85,24 +88,27 @@ class StockOpnameResource extends Resource
                                     ->label('Varian Produk')
                                     ->options(function (Get $get) {
                                         $cabangId = $get('../../id_cabang') ?? auth()->user()?->id_cabang;
-                                        if (!$cabangId) return [];
+                                        if (! $cabangId) {
+                                            return [];
+                                        }
 
                                         return VarianProduk::whereHas('stokCabangs', function ($query) use ($cabangId) {
                                             $query->where('id_cabang', $cabangId);
                                         })
-                                        ->with(['produk', 'stokCabangs' => function ($query) use ($cabangId) {
-                                            $query->where('id_cabang', $cabangId);
-                                        }])
-                                        ->get()
-                                        ->mapWithKeys(function ($varian) use ($cabangId) {
-                                            $stok = $varian->stokCabangs->first();
-                                            $label = $varian->produk->nama_produk . ' - ' . $varian->nama_varian;
-                                            if ($stok) {
-                                                $label .= ' (Stok: ' . $stok->stok_saat_ini . ')';
-                                            }
-                                            return [$varian->id => $label];
-                                        })
-                                        ->toArray();
+                                            ->with(['produk', 'stokCabangs' => function ($query) use ($cabangId) {
+                                                $query->where('id_cabang', $cabangId);
+                                            }])
+                                            ->get()
+                                            ->mapWithKeys(function ($varian) {
+                                                $stok = $varian->stokCabangs->first();
+                                                $label = $varian->produk->nama_produk.' - '.$varian->nama_varian;
+                                                if ($stok) {
+                                                    $label .= ' (Stok: '.$stok->stok_saat_ini.')';
+                                                }
+
+                                                return [$varian->id => $label];
+                                            })
+                                            ->toArray();
                                     })
                                     ->searchable()
                                     ->preload()
@@ -156,7 +162,7 @@ class StockOpnameResource extends Resource
                             ->addActionLabel('Tambah Item Opname')
                             ->defaultItems(0)
                             ->collapsible()
-                            ->itemLabel(fn (array $state): ?string => isset($state['id_varian_produk']) ? (VarianProduk::find($state['id_varian_produk'])?->nama_varian ?? 'Item Opname') : 'Item Opname')
+                            ->itemLabel(fn (array $state): ?string => isset($state['id_varian_produk']) ? (VarianProduk::find($state['id_varian_produk'])?->nama_varian ?? 'Item Opname') : 'Item Opname'),
                     ]),
             ]);
     }
@@ -165,14 +171,14 @@ class StockOpnameResource extends Resource
     {
         return $table
             ->modifyQueryUsing(function (Builder $query) {
-                if (!auth()->check()) {
+                if (! auth()->check()) {
                     return $query;
                 }
 
                 $user = auth()->user();
 
                 // Jika user adalah staff, batasi hanya melihat stock opname dari cabang mereka
-                if ($user->role === 'staf' && $user->id_cabang) {
+                if (static::isStaf() && $user->id_cabang) {
                     $query->where('id_cabang', $user->id_cabang);
                 }
 
@@ -224,26 +230,28 @@ class StockOpnameResource extends Resource
             ->actions([
                 Tables\Actions\ViewAction::make()
                     ->visible(function ($record) {
-                        $user = auth()->user();
                         // Admin bisa lihat semua
-                        if ($user->role === 'admin') {
+                        if (static::isAdmin()) {
                             return true;
                         }
                         // Staff hanya bisa lihat stock opname dari cabang mereka
-                        return $user->role === 'staf' && $user->id_cabang && $record->id_cabang === $user->id_cabang;
+                        $user = auth()->user();
+
+                        return static::isStaf() && $user->id_cabang && $record->id_cabang === $user->id_cabang;
                     }),
                 Tables\Actions\EditAction::make()
                     ->visible(function ($record) {
                         if ($record->status !== 'draft') {
                             return false;
                         }
-                        $user = auth()->user();
                         // Admin bisa edit semua
-                        if ($user->role === 'admin') {
+                        if (static::isAdmin()) {
                             return true;
                         }
                         // Staff hanya bisa edit stock opname dari cabang mereka
-                        return $user->role === 'staf' && $user->id_cabang && $record->id_cabang === $user->id_cabang;
+                        $user = auth()->user();
+
+                        return static::isStaf() && $user->id_cabang && $record->id_cabang === $user->id_cabang;
                     }),
                 Tables\Actions\Action::make('complete')
                     ->label('Selesaikan Opname')
@@ -270,7 +278,7 @@ class StockOpnameResource extends Resource
                                 $newStok = $detail->stok_fisik;
 
                                 $stokCabang->update([
-                                    'stok_saat_ini' => $newStok
+                                    'stok_saat_ini' => $newStok,
                                 ]);
 
                                 $updatedCount++;
@@ -291,24 +299,25 @@ class StockOpnameResource extends Resource
                         if ($record->status !== 'draft') {
                             return false;
                         }
-                        $user = auth()->user();
+
                         // Hanya Admin yang bisa complete stock opname
-                        return $user->role === 'admin';
+                        return static::isAdmin();
                     }),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make()
                         ->visible(function ($records) {
-                            if (!$records || !$records->every(fn ($record) => $record->status === 'draft')) {
+                            if (! $records || ! $records->every(fn ($record) => $record->status === 'draft')) {
                                 return false;
                             }
-                            $user = auth()->user();
                             // Admin bisa delete semua
-                            if ($user->role === 'admin') {
+                            if (static::isAdmin()) {
                                 return true;
                             }
                             // Staff hanya bisa delete stock opname dari cabang mereka
+                            $user = auth()->user();
+
                             return $records->every(fn ($record) => $record->id_cabang === $user->id_cabang);
                         }),
                 ]),
@@ -360,7 +369,7 @@ class StockOpnameResource extends Resource
                                     ->label('Catatan')
                                     ->columnSpanFull(),
                             ])
-                            ->columns(6)
+                            ->columns(6),
                     ]),
             ]);
     }
@@ -393,5 +402,25 @@ class StockOpnameResource extends Resource
     {
         // Navigation selalu ditampilkan untuk authenticated users
         return auth()->check();
+    }
+
+    /**
+     * Cek apakah user saat ini adalah admin — fallback Spatie untuk dual-role system.
+     */
+    public static function isAdmin(): bool
+    {
+        $user = auth()->user();
+
+        return $user && ($user->role === 'admin' || $user->hasRole('Admin'));
+    }
+
+    /**
+     * Cek apakah user saat ini adalah staf — fallback Spatie untuk dual-role system.
+     */
+    public static function isStaf(): bool
+    {
+        $user = auth()->user();
+
+        return $user && ($user->role === 'staf' || $user->hasRole('Staf'));
     }
 }

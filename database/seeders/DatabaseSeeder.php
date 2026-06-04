@@ -16,21 +16,21 @@ class DatabaseSeeder extends Seeder
         // Panggil RoleSeeder yang baru kita buat
         $this->call(RoleSeeder::class);
 
-        // Sisa seeder Anda...
-        // User::factory(10)->create();
+        // Data pengujian: cabang, supplier, kategori, produk, varian, stok
+        $this->call(TestDataSeeder::class);
 
-        // Anda bisa nonaktifkan factory default jika Anda buat user manual
+        // Admin user
         User::factory()->create([
             'name' => 'Admin User',
             'email' => 'admin@highcloud.com',
-            'password' => bcrypt('password'), // Ganti password jika perlu
-            // 'id_cabang' => 1, // Opsional, set jika perlu
+            'password' => bcrypt('password'),
+            'role' => 'admin',
         ]);
 
         // [PENTING] Assign role ke user pertama
         $user = User::where('email', 'admin@highcloud.com')->first();
         if ($user) {
-            $user->assignRole('Admin'); // Assign role 'Admin'
+            $user->assignRole('Admin');
         }
     }
 }

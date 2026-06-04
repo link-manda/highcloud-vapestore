@@ -14,15 +14,14 @@ class EditStockOpname extends EditRecord
     {
         parent::mount($record);
 
-        $user = auth()->user();
-
         // Admin bisa edit semua
-        if ($user->role === 'admin') {
+        if (StockOpnameResource::isAdmin()) {
             return;
         }
 
         // Staff hanya bisa edit stock opname dari cabang mereka
-        if ($user->role === 'staf' && $user->id_cabang && $this->record->id_cabang === $user->id_cabang) {
+        $user = auth()->user();
+        if (StockOpnameResource::isStaf() && $user->id_cabang && $this->record->id_cabang === $user->id_cabang) {
             return;
         }
 

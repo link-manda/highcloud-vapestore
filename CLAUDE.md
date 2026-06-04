@@ -24,10 +24,14 @@ HighCloud VapeStore — multi-branch inventory and retail management system. Lar
 
 Tests use PHPUnit (`tests/Unit`, `tests/Feature`). Only example tests exist so far.
 
+### Seeding
+
+- `DatabaseSeeder` calls `RoleSeeder` then creates the admin user: `admin@highcloud.com` / `password` (Spatie role `Admin`).
+- `RoleSeeder` creates Spatie roles `'Admin'` / `'Staf'` (capitalized).
+
 ## Database notes
 
 - Runtime DB is **MySQL** (`.env`). `.env.example` ships `DB_CONNECTION=sqlite` — do not assume sqlite.
-- `php artisan migrate:fresh --seed` creates an admin: `admin@highcloud.com` / `password` (assigned Spatie `Admin` role).
 - Schema and FK constraints are defined across ordered migrations; `create_inventory_tables` is the core schema (cabangs, kategoris, suppliers, produks, varian_produks, stok_cabangs + the `users.role`/`users.id_cabang` columns).
 
 ## Architecture
@@ -63,19 +67,40 @@ Check which mechanism existing code uses before adding permission logic. Staff a
 ### Filament admin panel
 
 - Single panel, path `/admin`, custom login `App\Filament\Auth\CustomLogin`. Defined in `app/Providers/Filament/AdminPanelProvider.php`.
+- Custom password-reset flow: `RequestPasswordReset` + `ResetPassword` (Filament base-class extensions), uses `ResetPasswordNotification` for branded mail.
 - Navigation groups (set `$navigationGroup` on resources to match): `Data Master`, `Transaksi Inventori`, `Laporan`, `Manajemen Sistem`.
 - Resources auto-discovered from `app/Filament/Resources`, pages from `app/Filament/Pages`, widgets from `app/Filament/Widgets`.
-- `app/Filament/Pages/Laporan*` are report pages; `app/Filament/Exports/*Exporter.php` are Filament CSV/Excel exporters; widgets include dashboard charts and a critical-stock widget.
+- `app/Filament/Pages/Laporan*` are report pages; `app/Filament/Exports/*Exporter.php` are Filament CSV/Excel exporters.
+- Dashboard widgets: `StatsOverview`, `KategoriTerlarisChart`, `PenjualanTujuhHariChart`, `ProdukStokKritisWidget`, `WelcomeWidget`.
 - Primary color is Violet; theme is "Neon Monsoon" (charcoal `#060e20`, neon purple `#ba9eff`, cyan `#53ddfc`, glassmorphism). Custom sidebar CSS is injected via `renderHook` in the panel provider.
+- Filament import/export tables exist in the DB (`imports`, `exports`, `failed_import_rows`).
 
 ### Public storefront
 
 - `routes/web.php` — single public route `/` rendering `resources/views/pages/home.blade.php` with all `Cabang` records (for the location map).
 - Blade components in `resources/views/components/` (incl. a `gallery/` subset) build the landing page. PDF report templates live in `resources/views/pdf/`.
 
+### PDF generation
+
+- `LaporanPdfService` wraps `barryvdh/laravel-dompdf`, generates A4 landscape PDFs via `streamDownload`. All Filament `Laporan*` pages use it.
+- Password reset flow uses custom Filament auth components:
+  - `RequestPasswordReset` — sends reset link with rate-limiting (2/min), uses `ResetPasswordNotification` via `Password::broker()`.
+  - `ResetPassword` — minimal extension of Filament's base reset page.
+  - Both suppress page titles/headings, use custom Blade views.
+
+### Session & sessions table
+
+- Sessions are DB-backed (`database/sessions` table via migration `create_sessions_table`).
+- `config/session.php` → `driver: database`.
+
+### Frontend assets
+
+- Vite 7 with `laravel-vite-plugin`. `npm run dev` for HMR, `npm run build` for production.
+- Axios bundled but no custom JS framework.
+
 ## Workflow conventions
 
 - Use migrations for all schema changes; never edit the DB manually.
 - Filament resource edits stay surgical — focus on `form()`, `table()`, `infolist()`.
 - Run `./vendor/bin/pint` before considering PHP work done.
-- `barryvdh/laravel-dompdf` generates PDFs from `resources/views/pdf/`.
+- Follow existing translation key patterns for Indonesian text — use `app/Filament` Blade/translations conventions.

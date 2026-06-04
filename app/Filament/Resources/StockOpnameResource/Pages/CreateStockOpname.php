@@ -3,7 +3,6 @@
 namespace App\Filament\Resources\StockOpnameResource\Pages;
 
 use App\Filament\Resources\StockOpnameResource;
-use Filament\Actions;
 use Filament\Resources\Pages\CreateRecord;
 
 class CreateStockOpname extends CreateRecord
@@ -12,16 +11,14 @@ class CreateStockOpname extends CreateRecord
 
     public function mount(): void
     {
-        $user = auth()->user();
-
-        // Hanya Admin dan Staf dengan cabang yang bisa create stock opname
-        if ($user->role === 'admin') {
-            // Admin bisa create untuk semua cabang
+        // Admin bisa create untuk semua cabang
+        if (StockOpnameResource::isAdmin()) {
             return;
         }
 
-        if ($user->role === 'staf' && $user->id_cabang) {
-            // Staff bisa create untuk cabang mereka
+        // Staff bisa create untuk cabang mereka
+        $user = auth()->user();
+        if (StockOpnameResource::isStaf() && $user->id_cabang) {
             return;
         }
 
@@ -37,7 +34,7 @@ class CreateStockOpname extends CreateRecord
         $data['id_petugas'] = $user->id;
 
         // Untuk staff, isi id_cabang dengan cabang mereka secara otomatis
-        if ($user->role === 'staf' && $user->id_cabang) {
+        if (StockOpnameResource::isStaf() && $user->id_cabang) {
             $data['id_cabang'] = $user->id_cabang;
         }
 

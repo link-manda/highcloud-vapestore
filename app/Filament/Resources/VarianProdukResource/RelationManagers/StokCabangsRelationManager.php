@@ -2,15 +2,15 @@
 
 namespace App\Filament\Resources\VarianProdukResource\RelationManagers;
 
-use Illuminate\Database\Eloquent\Model;
 use Filament\Forms;
+use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\QueryException;
 use Illuminate\Validation\ValidationException;
-use Filament\Forms\Components\TextInput;
 
 class StokCabangsRelationManager extends RelationManager
 {
@@ -32,7 +32,7 @@ class StokCabangsRelationManager extends RelationManager
                     ->searchable()
                     ->preload()
                     ->label('Cabang')
-                    ->disabled(fn(string $operation): bool => $operation === 'edit') // Disable saat edit
+                    ->disabled(fn (string $operation): bool => $operation === 'edit') // Disable saat edit
                     // Tambahkan validasi untuk mencegah duplikasi - hanya untuk operasi create
                     ->rules([
                         function () {
@@ -51,14 +51,14 @@ class StokCabangsRelationManager extends RelationManager
                             };
                         },
                     ])
-                    ->helperText(fn(string $operation): ?string => $operation === 'edit' ? 'Cabang tidak bisa diubah saat edit.' : 'Pilih cabang yang belum memiliki stok'),
+                    ->helperText(fn (string $operation): ?string => $operation === 'edit' ? 'Cabang tidak bisa diubah saat edit.' : 'Pilih cabang yang belum memiliki stok'),
 
                 TextInput::make('stok_saat_ini')
                     ->numeric()
                     ->label('Stok Awal / Saat Ini')
-                    ->disabled(fn(string $operation): bool => $operation === 'edit') // Disable saat edit
-                    ->required(fn(string $operation): bool => $operation === 'create') // Wajib hanya saat create (stok awal)
-                    ->helperText(fn(string $operation): ?string => $operation === 'edit' ? 'Stok saat ini hanya bisa diubah melalui transaksi Barang Masuk/Keluar.' : 'Masukkan jumlah stok awal untuk cabang ini.')
+                    ->disabled(fn (string $operation): bool => $operation === 'edit') // Disable saat edit
+                    ->required(fn (string $operation): bool => $operation === 'create') // Wajib hanya saat create (stok awal)
+                    ->helperText(fn (string $operation): ?string => $operation === 'edit' ? 'Stok saat ini hanya bisa diubah melalui transaksi Barang Masuk/Keluar.' : 'Masukkan jumlah stok awal untuk cabang ini.')
                     ->default(0),
                 TextInput::make('stok_minimum')
                     ->numeric()
@@ -66,7 +66,7 @@ class StokCabangsRelationManager extends RelationManager
                     ->label('Batas Stok Minimum')
                     ->helperText('Batas stok untuk memicu notifikasi email ke Admin.')
                     ->default(0),
-                    ]);
+            ]);
     }
 
     public function table(Table $table): Table
@@ -82,7 +82,7 @@ class StokCabangsRelationManager extends RelationManager
                     ->label('Stok')
                     ->sortable()
                     ->numeric()
-                    ->formatStateUsing(fn($state) => number_format($state, 0)),
+                    ->formatStateUsing(fn ($state) => number_format($state, 0)),
             ])
             ->filters([
                 //
@@ -112,6 +112,7 @@ class StokCabangsRelationManager extends RelationManager
             ->actions([
                 Tables\Actions\EditAction::make()
                     ->modalHeading('Edit Stok Cabang')
+                    ->visible(fn () => auth()->user()->hasRole('Admin'))
                     ->successNotificationTitle('Stok berhasil diperbarui'),
 
                 Tables\Actions\Action::make('tambah_stok')
@@ -130,13 +131,14 @@ class StokCabangsRelationManager extends RelationManager
                     ->action(function (array $data, $record) {
                         $tambahan = $data['tambahan_stok'];
                         $record->update([
-                            'stok_saat_ini' => $record->stok_saat_ini + $tambahan
+                            'stok_saat_ini' => $record->stok_saat_ini + $tambahan,
                         ]);
                     })
                     ->successNotificationTitle('Stok berhasil ditambahkan'),
 
                 Tables\Actions\DeleteAction::make()
-                    ->modalHeading('Hapus Stok Cabang'),
+                    ->modalHeading('Hapus Stok Cabang')
+                    ->visible(fn () => auth()->user()->hasRole('Admin')),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

@@ -12,15 +12,14 @@ class ListStockOpnames extends ListRecords
 
     public function mount(): void
     {
-        $user = auth()->user();
-
         // Admin bisa akses semua
-        if ($user->role === 'admin') {
+        if (StockOpnameResource::isAdmin()) {
             return;
         }
 
         // Staff hanya bisa akses jika memiliki cabang
-        if ($user->role === 'staf' && $user->id_cabang) {
+        $user = auth()->user();
+        if (StockOpnameResource::isStaf() && $user->id_cabang) {
             return;
         }
 
@@ -30,9 +29,7 @@ class ListStockOpnames extends ListRecords
 
     protected function getHeaderActions(): array
     {
-        $user = auth()->user();
-
-        if ($user->role === 'admin' || ($user->role === 'staf' && $user->id_cabang)) {
+        if (StockOpnameResource::isAdmin() || (StockOpnameResource::isStaf() && auth()->user()?->id_cabang)) {
             return [
                 Actions\CreateAction::make(),
             ];
