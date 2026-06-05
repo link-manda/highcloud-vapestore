@@ -10,7 +10,14 @@
 
         <div class="mx-auto w-full max-w-sm lg:w-96 relative z-10">
             <div class="mb-10 text-center lg:text-left">
-                <img src="{{ asset('storage/cabang-images/logo.jpeg') }}" alt="Logo" class="w-20 h-20 rounded-2xl mb-6 mx-auto lg:ml-0 shadow-lg border border-white/10">
+                <div class="relative w-20 h-20 mb-6 mx-auto lg:ml-0 group">
+                    <!-- Glow effect behind the logo -->
+                    <div class="absolute inset-0 bg-gradient-to-tr from-[#ba9eff] to-[#53ddfc] rounded-full blur-md opacity-45 group-hover:opacity-75 transition-opacity duration-500"></div>
+                    <!-- Logo image container -->
+                    <div class="relative w-full h-full rounded-full overflow-hidden border-2 border-white/20 bg-white flex items-center justify-center p-0.5 shadow-xl">
+                        <img src="{{ asset('storage/cabang-images/logo_new.jpeg') }}" alt="Highcloud Logo" class="w-full h-full object-cover rounded-full">
+                    </div>
+                </div>
                 <h2 style="font-family: 'Plus Jakarta Sans', sans-serif;" class="text-3xl font-bold tracking-tight text-[#dee5ff]">Reset Password</h2>
                 <p style="font-family: 'Manrope', sans-serif;" class="mt-2 text-sm text-[#a3aac4]">Enter your email to receive a reset link.</p>
             </div>

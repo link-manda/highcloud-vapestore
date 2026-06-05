@@ -3,7 +3,12 @@
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-16 md:gap-8 mb-24">
             <!-- Brand Info -->
             <div class="col-span-1 lg:col-span-1">
-                <h2 class="font-headline font-extrabold text-2xl tracking-tighter mb-8">HIGHCLOUD<span class="text-gallery-dim">GALLERY</span></h2>
+                <div class="flex items-center gap-3 mb-8">
+                    <div class="relative w-9 h-9 rounded-full overflow-hidden border border-white/10 shadow-sm bg-white flex items-center justify-center p-0.5 shrink-0">
+                        <img src="{{ asset('storage/cabang-images/logo_new.jpeg') }}" alt="Highcloud Logo" class="w-full h-full object-cover rounded-full">
+                    </div>
+                    <h2 class="font-headline font-extrabold text-2xl tracking-tighter">HIGHCLOUD<span class="text-gallery-dim">GALLERY</span></h2>
+                </div>
                 <p class="font-body text-gallery-dim leading-relaxed mb-8 max-w-xs">
                     Bali's premier destination for curated vaping experiences. Elevating the cloud since 2018 with aesthetic excellence.
                 </p>

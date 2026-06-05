@@ -1,8 +1,11 @@
 <nav class="sticky top-0 w-full z-50 bg-[#060e20]/70 backdrop-blur-2xl shadow-[0_1px_20px_rgba(139,92,246,0.1)] shadow-2xl shadow-[#ae8dff]/10">
     <div class="flex justify-between items-center w-full px-8 py-5 max-w-screen-2xl mx-auto">
         <!-- Brand Logo -->
-        <a href="/" class="text-2xl font-extrabold tracking-tighter text-transparent bg-clip-text bg-gradient-to-br from-[#ba9eff] to-[#8455ef] headline">
-            Highcloud Vapestore
+        <a href="/" class="flex items-center gap-3 text-2xl font-extrabold tracking-tighter text-transparent bg-clip-text bg-gradient-to-br from-[#ba9eff] to-[#8455ef] headline group">
+            <div class="relative w-8 h-8 rounded-full overflow-hidden border border-white/20 shadow-sm bg-white flex items-center justify-center p-0.5 shrink-0 group-hover:scale-105 transition-transform duration-300">
+                <img src="{{ asset('storage/cabang-images/logo_new.jpeg') }}" alt="Highcloud Logo" class="w-full h-full object-cover rounded-full">
+            </div>
+            <span class="text-transparent bg-clip-text bg-gradient-to-br from-[#ba9eff] to-[#8455ef]">Highcloud Vapestore</span>
         </a>
 
         <!-- Navigation Links (Web) -->
