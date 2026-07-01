@@ -19,25 +19,25 @@
                     'id' => '01', 
                     'name' => 'Disposable', 
                     'count' => '42',
-                    'image' => 'https://images.unsplash.com/photo-1574044536246-12002888a75a?auto=format&fit=crop&q=80&w=600'
+                    'image' => asset('images/gallery/kategori-device.jpg')
                 ],
                 [
                     'id' => '02', 
                     'name' => 'Pod Systems', 
                     'count' => '18',
-                    'image' => 'https://images.unsplash.com/photo-1552819056-421522630735?auto=format&fit=crop&q=80&w=600'
+                    'image' => asset('images/gallery/kategori-liquid.jpg')
                 ],
                 [
                     'id' => '03', 
                     'name' => 'E-Liquid', 
                     'count' => '124',
-                    'image' => 'https://images.unsplash.com/photo-1594465919760-441fe5908ab0?auto=format&fit=crop&q=80&w=600'
+                    'image' => asset('images/gallery/kategori-aksesoris.jpg')
                 ],
                 [
                     'id' => '04', 
                     'name' => 'Accessories', 
                     'count' => '25',
-                    'image' => 'https://images.unsplash.com/photo-1510166089176-b57564a542b1?auto=format&fit=crop&q=80&w=600'
+                    'image' => asset('images/gallery/kategori-starter-kit.jpg')
                 ],
             ];
         @endphp

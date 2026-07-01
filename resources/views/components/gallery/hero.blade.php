@@ -33,8 +33,8 @@
         <!-- Product Image -->
         <div class="relative z-10 w-[80%] sm:w-[60%] lg:w-[110%] h-auto group">
             <div class="absolute inset-0 bg-black/5 blur-[60px] lg:blur-[100px] rounded-full scale-75 group-hover:scale-100 transition-transform duration-1000"></div>
-            <img src="https://images.unsplash.com/photo-1552819056-421522630735?auto=format&fit=crop&q=80&w=1600" 
-                 alt="Premium Vape Device" 
+            <img src="{{ asset('images/gallery/hero-atmosphere.jpg') }}"
+                 alt="Premium Vape Device"
                  class="relative z-10 w-full h-auto rotate-[-8deg] drop-shadow-[0_40px_80px_rgba(0,0,0,0.1)] lg:drop-shadow-[0_60px_100px_rgba(0,0,0,0.12)] group-hover:rotate-[-2deg] group-hover:scale-105 transition-transform duration-1000 ease-out">
         </div>
     </div>
