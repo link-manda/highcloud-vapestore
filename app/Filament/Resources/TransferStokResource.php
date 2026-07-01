@@ -3,32 +3,34 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\TransferStokResource\Pages;
-use App\Models\TransferStok;
 use App\Models\Cabang;
 use App\Models\StokCabang;
+use App\Models\TransferStok;
 use App\Models\VarianProduk;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Forms\Get;
+use Filament\Infolists;
+use Filament\Infolists\Infolist;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Filament\Infolists;
-use Filament\Infolists\Infolist;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
-use Filament\Forms\Get;
-use Filament\Forms\Set;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Auth;
 
 class TransferStokResource extends Resource
 {
     protected static ?string $model = TransferStok::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-arrows-right-left';
+
     protected static ?string $navigationGroup = 'Transaksi Inventori';
+
     protected static ?int $navigationSort = 4;
+
     protected static ?string $navigationLabel = 'Transfer Stok Cabang';
+
     protected static ?string $recordTitleAttribute = 'nomor_transfer';
 
     public static function form(Form $form): Form
@@ -40,7 +42,7 @@ class TransferStokResource extends Resource
                 Forms\Components\Section::make('Informasi Transfer')
                     ->schema([
                         Forms\Components\TextInput::make('nomor_transfer')
-                            ->default('TS-' . date('Ymd') . '-XXXX')
+                            ->default('TS-'.date('Ymd').'-XXXX')
                             ->disabled()
                             ->dehydrated() // Pastikan tetap tersimpan
                             ->label('Nomor Transfer')
@@ -63,7 +65,7 @@ class TransferStokResource extends Resource
                                 'not_in' => 'Cabang Sumber tidak boleh sama dengan Cabang Tujuan.',
                             ])
                             ->rules([
-                                fn(Get $get): \Closure => function (string $attribute, $value, \Closure $fail) use ($get) {
+                                fn (Get $get): \Closure => function (string $attribute, $value, \Closure $fail) use ($get) {
                                     if ($value === $get('id_cabang_tujuan')) {
                                         $fail('Cabang Sumber tidak boleh sama dengan Cabang Tujuan.');
                                     }
@@ -87,7 +89,7 @@ class TransferStokResource extends Resource
                                 'not_in' => 'Cabang Tujuan tidak boleh sama dengan Cabang Sumber.',
                             ])
                             ->rules([
-                                fn(Get $get): \Closure => function (string $attribute, $value, \Closure $fail) use ($get) {
+                                fn (Get $get): \Closure => function (string $attribute, $value, \Closure $fail) use ($get) {
                                     if ($value === $get('id_cabang_sumber')) {
                                         $fail('Cabang Tujuan tidak boleh sama dengan Cabang Sumber.');
                                     }
@@ -114,7 +116,7 @@ class TransferStokResource extends Resource
                                     // Logika Krusial: Hanya tampilkan produk yang ADA STOK di cabang SUMBER
                                     ->options(function (Get $get): Collection {
                                         $cabangSumberId = $get('../../id_cabang_sumber'); // Ambil ID dari luar repeater
-                                        if (!$cabangSumberId) {
+                                        if (! $cabangSumberId) {
                                             return collect(); // Kosong jika cabang sumber belum dipilih
                                         }
 
@@ -125,10 +127,11 @@ class TransferStokResource extends Resource
                                         })
                                             ->with('produk') // Load relasi produk untuk nama
                                             ->get()
-                                            ->mapWithKeys(fn(VarianProduk $v) => [$v->id => "{$v->produk->nama_produk} - {$v->nama_varian}"]);
+                                            ->mapWithKeys(fn (VarianProduk $v) => [$v->id => "{$v->produk->nama_produk} - {$v->nama_varian}"]);
                                     })
                                     ->getOptionLabelUsing(function ($value): ?string {
                                         $record = VarianProduk::with('produk')->find($value);
+
                                         return $record ? "{$record->produk->nama_produk} - {$record->nama_varian}" : null;
                                     })
                                     ->columnSpan(['md' => 7]),
@@ -139,12 +142,13 @@ class TransferStokResource extends Resource
                                     ->content(function (Get $get): string {
                                         $varianId = $get('id_varian_produk');
                                         $cabangSumberId = $get('../../id_cabang_sumber');
-                                        if (!$varianId || !$cabangSumberId) {
+                                        if (! $varianId || ! $cabangSumberId) {
                                             return 'Pilih produk';
                                         }
                                         $stok = StokCabang::where('id_cabang', $cabangSumberId)
                                             ->where('id_varian_produk', $varianId)
                                             ->first();
+
                                         return $stok ? $stok->stok_saat_ini : '0';
                                     })
                                     ->columnSpan(['md' => 2]),
@@ -160,12 +164,13 @@ class TransferStokResource extends Resource
                                     ->maxValue(function (Get $get): int {
                                         $varianId = $get('id_varian_produk');
                                         $cabangSumberId = $get('../../id_cabang_sumber');
-                                        if (!$varianId || !$cabangSumberId) {
+                                        if (! $varianId || ! $cabangSumberId) {
                                             return 1; // Default
                                         }
                                         $stok = StokCabang::where('id_cabang', $cabangSumberId)
                                             ->where('id_varian_produk', $varianId)
                                             ->first();
+
                                         return $stok ? $stok->stok_saat_ini : 0;
                                     })
                                     ->columnSpan(['md' => 3]),
@@ -173,6 +178,7 @@ class TransferStokResource extends Resource
                             ])
                             ->itemLabel(function (array $state): ?string {
                                 $varian = VarianProduk::with('produk')->find($state['id_varian_produk'] ?? null);
+
                                 return $varian ? "{$varian->produk->nama_produk} - {$varian->nama_varian} (Qty: {$state['jumlah']})" : null;
                             })
                             ->columns(['md' => 12])
@@ -216,25 +222,26 @@ class TransferStokResource extends Resource
                     ->relationship('cabangSumber', 'nama_cabang')
                     ->preload()
                     ->searchable()
-                    ->hidden(fn() => !Auth::user()->hasRole('Admin')),
+                    ->hidden(fn () => ! Auth::user()->hasRole('Admin')),
                 Tables\Filters\SelectFilter::make('id_cabang_tujuan')
                     ->label('Cabang Tujuan')
                     ->relationship('cabangTujuan', 'nama_cabang')
                     ->preload()
                     ->searchable()
-                    ->hidden(fn() => !Auth::user()->hasRole('Admin')),
+                    ->hidden(fn () => ! Auth::user()->hasRole('Admin')),
             ])
             ->actions([
                 Tables\Actions\ViewAction::make(),
                 // Transaksi tidak boleh di-edit
                 // Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make()
-                    ->hidden(fn() => !Auth::user()->hasRole('Admin')), // Hanya Admin boleh hapus
+                // Delete dinonaktifkan demi integritas stok
+                // Tables\Actions\DeleteAction::make()
+                //    ->hidden(fn() => !Auth::user()->hasRole('Admin')),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make()
-                        ->hidden(fn() => !Auth::user()->hasRole('Admin')),
+                    // Tables\Actions\DeleteBulkAction::make()
+                    //    ->hidden(fn() => !Auth::user()->hasRole('Admin')),
                 ]),
             ])
             ->defaultSort('created_at', 'desc');
@@ -260,14 +267,14 @@ class TransferStokResource extends Resource
                             ->schema([
                                 Infolists\Components\TextEntry::make('id_varian_produk')
                                     ->label('Produk Varian')
-                                    ->getStateUsing(fn($record): string => $record->varianProduk ? (optional($record->varianProduk->produk)->nama_produk . ' - ' . $record->varianProduk->nama_varian) : 'N/A')
+                                    ->getStateUsing(fn ($record): string => $record->varianProduk ? (optional($record->varianProduk->produk)->nama_produk.' - '.$record->varianProduk->nama_varian) : 'N/A')
                                     ->columnSpan(8),
                                 Infolists\Components\TextEntry::make('jumlah')
                                     ->label('Jumlah Ditransfer')
                                     ->numeric()
                                     ->columnSpan(4),
                             ])
-                            ->columns(12)
+                            ->columns(12),
                     ]),
             ]);
     }

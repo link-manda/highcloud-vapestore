@@ -3,10 +3,10 @@
 namespace App\Filament\Resources\PurchaseOrderResource\Pages;
 
 use App\Filament\Resources\PurchaseOrderResource;
+use App\Models\PurchaseOrder;
 use Filament\Actions;
-use Filament\Resources\Pages\ViewRecord;
 use Filament\Notifications\Notification; // Import Notification
-use App\Models\PurchaseOrder; // Import Model
+use Filament\Resources\Pages\ViewRecord; // Import Model
 
 class ViewPurchaseOrder extends ViewRecord
 {
@@ -17,14 +17,14 @@ class ViewPurchaseOrder extends ViewRecord
         return [
             // Tombol Edit hanya muncul jika status Draft
             Actions\EditAction::make()
-                ->visible(fn(PurchaseOrder $record): bool => $record->status === 'Draft'),
+                ->visible(fn (PurchaseOrder $record): bool => $record->status === 'Draft'),
 
             // Tombol Submit PO (mengubah status ke Submitted)
             Actions\Action::make('submitPO')
                 ->label('Submit PO')
                 ->color('info')
                 ->icon('heroicon-o-paper-airplane')
-                ->visible(fn(PurchaseOrder $record): bool => $record->status === 'Draft') // Hanya muncul jika Draft
+                ->visible(fn (PurchaseOrder $record): bool => $record->status === 'Draft') // Hanya muncul jika Draft
                 ->requiresConfirmation() // Minta konfirmasi
                 ->modalHeading('Submit Purchase Order?')
                 ->modalDescription('Setelah disubmit, detail item PO tidak dapat diubah. Anda yakin?')
@@ -36,6 +36,7 @@ class ViewPurchaseOrder extends ViewRecord
                             ->title('PO berhasil disubmit')
                             ->success()
                             ->send();
+
                         // Refresh halaman untuk update tampilan status & tombol
                         return redirect($this->getResource()::getUrl('view', ['record' => $record]));
                     } else {
@@ -53,7 +54,7 @@ class ViewPurchaseOrder extends ViewRecord
                 ->color('danger')
                 ->icon('heroicon-o-x-circle')
                 // Bisa dicancel jika Draft atau Submitted (belum diterima sebagian)
-                ->visible(fn(PurchaseOrder $record): bool => in_array($record->status, ['Draft', 'Submitted']))
+                ->visible(fn (PurchaseOrder $record): bool => in_array($record->status, ['Draft', 'Submitted']))
                 ->requiresConfirmation()
                 ->modalHeading('Batalkan Purchase Order?')
                 ->modalDescription('PO yang dibatalkan tidak dapat diproses lebih lanjut. Anda yakin?')
@@ -65,6 +66,7 @@ class ViewPurchaseOrder extends ViewRecord
                             ->title('PO berhasil dibatalkan')
                             ->warning() // Gunakan warna warning/danger
                             ->send();
+
                         // Refresh halaman
                         return redirect($this->getResource()::getUrl('view', ['record' => $record]));
                     } else {

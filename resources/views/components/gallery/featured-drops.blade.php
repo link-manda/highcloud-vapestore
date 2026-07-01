@@ -13,9 +13,9 @@
             name="Neon Mist Signature" image="{{ asset('images/gallery/produk-featured-2.jpg') }}" />
         <x-gallery.product-card class="col-span-12 md:col-span-6 md:-mt-16" category="Disposable"
             name="Aura Zero Series"
-            image="https://www.static-src.com/wcsstore/Indraprastha/images/catalog/full/catalog-image/109/MTA-182268856/trml_trml_t28_pod_kit_bundling_x_rcraft_full01_mw6u69e2.jpg" />
+            image="{{ asset('images/gallery/produk-featured-1.jpg') }}" />
         <x-gallery.product-card class="col-span-12 md:col-span-6" category="Accessories" name="Zenith Titanium Tank"
-            image="https://www.static-src.com/wcsstore/Indraprastha/images/catalog/full/catalog-image/102/MTA-182259714/trml_trml_t28_28w_800mah_pod_kit_100-_authentic_by_trml_full01_fyorbx75.jpg" />
+            image="{{ asset('images/gallery/produk-featured-2.jpg') }}" />
     </div>
 
     <div class="mt-24 flex justify-center">

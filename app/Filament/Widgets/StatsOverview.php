@@ -45,21 +45,20 @@ class StatsOverview extends BaseWidget
             ->whereIn('status', ['Submitted', 'Partially Received'])
             ->count();
 
-
         return [
             Stat::make('Pendapatan Hari Ini', Number::currency($totalPenjualanHariIni, 'IDR'))
-                ->description($jumlahTransaksiHariIni . ' transaksi berhasil diproses')
+                ->description($jumlahTransaksiHariIni.' transaksi berhasil diproses')
                 ->descriptionIcon('heroicon-m-banknotes')
                 ->color('success')
                 ->chart([7, 2, 10, 3, 15, 4, 17]),
 
-            Stat::make('Item Stok Kritis', $jumlahStokKritis . ' Item')
+            Stat::make('Item Stok Kritis', $jumlahStokKritis.' Item')
                 ->description('Segera lakukan restock cabang')
                 ->descriptionIcon('heroicon-m-exclamation-triangle')
                 ->color($jumlahStokKritis > 0 ? 'danger' : 'gray')
                 ->chart([10, 4, 15, 3, 10, 2, 7]),
 
-            Stat::make('PO Menunggu', $jumlahPOTerbuka . ' Pesanan')
+            Stat::make('PO Menunggu', $jumlahPOTerbuka.' Pesanan')
                 ->description('Purchase order status aktif')
                 ->descriptionIcon('heroicon-m-shopping-cart')
                 ->color('warning')

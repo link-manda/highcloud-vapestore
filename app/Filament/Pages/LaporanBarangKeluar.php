@@ -4,34 +4,33 @@ namespace App\Filament\Pages;
 
 use App\Filament\Exports\BarangKeluarDetailExporter;
 use App\Models\BarangKeluarDetail;
-use App\Models\Cabang;
 use App\Models\Kategori;
 use App\Models\VarianProduk;
+use App\Services\LaporanPdfService;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select as FormSelect;
 use Filament\Pages\Page;
-use Filament\Tables\Contracts\HasTable;
-use Filament\Tables\Concerns\InteractsWithTable;
-use Filament\Tables\Table;
 use Filament\Tables\Actions\Action;
 use Filament\Tables\Actions\ExportAction;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Concerns\InteractsWithTable;
+use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
-use Illuminate\Database\Eloquent\Builder;
-use Filament\Tables;
+use Filament\Tables\Table;
 use Illuminate\Contracts\View\View;
-use Illuminate\Database\Query\Builder as QueryBuilder;
-use Illuminate\Support\Carbon;
-use App\Services\LaporanPdfService;
+use Illuminate\Database\Eloquent\Builder;
 
 class LaporanBarangKeluar extends Page implements HasTable
 {
     use InteractsWithTable;
 
     protected static ?string $navigationIcon = 'heroicon-o-document-arrow-up';
+
     protected static ?string $navigationLabel = 'Laporan Barang Keluar';
+
     protected static ?string $navigationGroup = 'Laporan';
+
     protected static ?string $title = 'Laporan Barang Keluar';
 
     protected static string $view = 'filament.pages.laporan-barang-keluar';
@@ -58,7 +57,7 @@ class LaporanBarangKeluar extends Page implements HasTable
                 BarangKeluarDetail::query()
                     ->with([
                         'barangKeluar.cabang',
-                        'varianProduk.produk.kategori'
+                        'varianProduk.produk.kategori',
                     ])
             )
             ->striped()
@@ -110,16 +109,16 @@ class LaporanBarangKeluar extends Page implements HasTable
                         return $query
                             ->when(
                                 $data['created_from'],
-                                fn(Builder $query, $date): Builder => $query->whereHas(
+                                fn (Builder $query, $date): Builder => $query->whereHas(
                                     'barangKeluar',
-                                    fn($q) => $q->whereDate('tanggal_keluar', '>=', $date)
+                                    fn ($q) => $q->whereDate('tanggal_keluar', '>=', $date)
                                 ),
                             )
                             ->when(
                                 $data['created_until'],
-                                fn(Builder $query, $date): Builder => $query->whereHas(
+                                fn (Builder $query, $date): Builder => $query->whereHas(
                                     'barangKeluar',
-                                    fn($q) => $q->whereDate('tanggal_keluar', '<=', $date)
+                                    fn ($q) => $q->whereDate('tanggal_keluar', '<=', $date)
                                 ),
                             );
                     }),
@@ -136,24 +135,25 @@ class LaporanBarangKeluar extends Page implements HasTable
                         if (empty($data['value'])) {
                             return $query;
                         }
+
                         return $query->whereHas(
                             'varianProduk.produk',
-                            fn($q) => $q->where('id_kategori', $data['value'])
+                            fn ($q) => $q->where('id_kategori', $data['value'])
                         );
                     }),
                 Filter::make('varian_produk')
                     ->form([
                         FormSelect::make('id_varian_produk')
                             ->label('Cari Produk / Varian')
-                            ->options(VarianProduk::with('produk')->get()->mapWithKeys(fn($varian) => [
-                                $varian->id => "{$varian->produk->nama_produk} - {$varian->nama_varian}"
+                            ->options(VarianProduk::with('produk')->get()->mapWithKeys(fn ($varian) => [
+                                $varian->id => "{$varian->produk->nama_produk} - {$varian->nama_varian}",
                             ]))
                             ->searchable()
                             ->preload(),
                     ])
-                    ->query(fn(Builder $query, array $data) => $query->when(
+                    ->query(fn (Builder $query, array $data) => $query->when(
                         $data['id_varian_produk'],
-                        fn(Builder $query, $id) => $query->where('id_varian_produk', $id)
+                        fn (Builder $query, $id) => $query->where('id_varian_produk', $id)
                     )),
             ])
             ->actions([
@@ -176,7 +176,7 @@ class LaporanBarangKeluar extends Page implements HasTable
                         return $service->generate(
                             'pdf.laporan-barang-keluar',
                             $this->getFilteredTableQuery()->get(),
-                            'laporan-barang-keluar-' . now()->format('Y-m-d')
+                            'laporan-barang-keluar-'.now()->format('Y-m-d')
                         );
                     }),
                 Action::make('refresh')
@@ -193,7 +193,7 @@ class LaporanBarangKeluar extends Page implements HasTable
     {
         $query = $this->getFilteredTableQuery();
         $total = $query->sum('subtotal');
+
         return view('filament.pages.laporan-barang-keluar-footer', ['total' => $total]);
     }
-
 }

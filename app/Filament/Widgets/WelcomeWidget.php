@@ -11,7 +11,7 @@ class WelcomeWidget extends Widget
 
     protected static ?int $sort = 1;
 
-    protected int | string | array $columnSpan = 'full';
+    protected int|string|array $columnSpan = 'full';
 
     public function getUser()
     {
@@ -26,9 +26,16 @@ class WelcomeWidget extends Widget
     public function getGreeting(): string
     {
         $hour = date('H');
-        if ($hour < 12) return 'Selamat Pagi';
-        if ($hour < 15) return 'Selamat Siang';
-        if ($hour < 18) return 'Selamat Sore';
+        if ($hour < 12) {
+            return 'Selamat Pagi';
+        }
+        if ($hour < 15) {
+            return 'Selamat Siang';
+        }
+        if ($hour < 18) {
+            return 'Selamat Sore';
+        }
+
         return 'Selamat Malam';
     }
 }

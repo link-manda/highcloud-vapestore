@@ -3,7 +3,6 @@
 namespace App\Filament\Resources\TransferStokResource\Pages;
 
 use App\Filament\Resources\TransferStokResource;
-use Filament\Actions;
 use Filament\Resources\Pages\ViewRecord;
 
 class ViewTransferStok extends ViewRecord

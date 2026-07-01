@@ -20,7 +20,7 @@ class BarangMasukExporter extends Exporter
                 ->label('Nomor Transaksi'),
             ExportColumn::make('tanggal_masuk')
                 ->label('Tanggal Masuk')
-                ->formatStateUsing(fn($state) => Carbon::parse($state)->format('d/m/Y H:i')), // Format tanggal
+                ->formatStateUsing(fn ($state) => Carbon::parse($state)->format('d/m/Y H:i')), // Format tanggal
             ExportColumn::make('supplier.nama_supplier')
                 ->label('Supplier'),
             ExportColumn::make('cabangTujuan.nama_cabang')
@@ -45,10 +45,10 @@ class BarangMasukExporter extends Exporter
      */
     public static function getCompletedNotificationBody(Export $export): string
     {
-        $body = 'Ekspor laporan barang masuk Anda telah selesai dan ' . number_format($export->successful_rows) . ' baris telah diekspor.';
+        $body = 'Ekspor laporan barang masuk Anda telah selesai dan '.number_format($export->successful_rows).' baris telah diekspor.';
 
         if ($failedRowsCount = $export->getFailedRowsCount()) {
-            $body .= ' ' . number_format($failedRowsCount) . ' baris gagal diekspor.';
+            $body .= ' '.number_format($failedRowsCount).' baris gagal diekspor.';
         }
 
         return $body;
@@ -60,12 +60,13 @@ class BarangMasukExporter extends Exporter
     public static function getCompletedNotification(Export $export): Notification
     {
         $notification = parent::getCompletedNotification($export);
-        $user = auth()->user();
+        $user = $export->user;
 
-        // Kirim ke KEDUA channel
-        $notification
-            ->sendToDatabase($user) // Untuk ikon lonceng (bell)
-            ->sendToMail($user);     // Untuk email (Mailtrap)
+        if ($user) {
+            $notification
+                ->sendToDatabase($user)
+                ->sendToMail($user);
+        }
 
         return $notification;
     }

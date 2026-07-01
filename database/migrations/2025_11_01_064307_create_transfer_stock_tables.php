@@ -25,7 +25,7 @@ return new class extends Migration
             $table->timestamps();
 
             // Tambahkan constraint agar sumber dan tujuan tidak boleh sama (jika didukung database Anda)
-            // $table->check('id_cabang_sumber <> id_cabang_tujuan'); 
+            // $table->check('id_cabang_sumber <> id_cabang_tujuan');
         });
 
         // Tabel Detail Item Transfer

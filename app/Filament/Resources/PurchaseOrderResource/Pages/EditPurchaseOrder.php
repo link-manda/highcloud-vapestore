@@ -31,8 +31,8 @@ class EditPurchaseOrder extends EditRecord
         $total = 0;
         if (isset($data['details'])) {
             foreach ($data['details'] as $detail) {
-                $jumlah = is_numeric($detail['jumlah_pesan'] ?? null) ? (int)$detail['jumlah_pesan'] : 0;
-                $harga = is_numeric($detail['harga_beli_saat_po'] ?? null) ? (float)$detail['harga_beli_saat_po'] : 0;
+                $jumlah = is_numeric($detail['jumlah_pesan'] ?? null) ? (int) $detail['jumlah_pesan'] : 0;
+                $harga = is_numeric($detail['harga_beli_saat_po'] ?? null) ? (float) $detail['harga_beli_saat_po'] : 0;
                 $total += $jumlah * $harga;
             }
         }

@@ -20,7 +20,7 @@ class StockOpnameExporter extends Exporter
                 ->label('Cabang'),
             ExportColumn::make('stockOpname.tanggal_opname')
                 ->label('Tanggal Opname')
-                ->formatStateUsing(fn($state) => Carbon::parse($state)->format('d/m/Y')),
+                ->formatStateUsing(fn ($state) => Carbon::parse($state)->format('d/m/Y')),
             ExportColumn::make('varianProduk.produk.nama_produk')
                 ->label('Produk'),
             ExportColumn::make('varianProduk.nama_varian')
@@ -35,7 +35,7 @@ class StockOpnameExporter extends Exporter
                 ->label('Keterangan'),
             ExportColumn::make('created_at')
                 ->label('Dibuat')
-                ->formatStateUsing(fn($state) => Carbon::parse($state)->format('d/m/Y H:i')),
+                ->formatStateUsing(fn ($state) => Carbon::parse($state)->format('d/m/Y H:i')),
         ];
     }
 
@@ -44,10 +44,10 @@ class StockOpnameExporter extends Exporter
      */
     public static function getCompletedNotificationBody(Export $export): string
     {
-        $body = 'Ekspor laporan stok opname Anda telah selesai dan ' . number_format($export->successful_rows) . ' baris telah diekspor.';
+        $body = 'Ekspor laporan stok opname Anda telah selesai dan '.number_format($export->successful_rows).' baris telah diekspor.';
 
         if ($failedRowsCount = $export->getFailedRowsCount()) {
-            $body .= ' ' . number_format($failedRowsCount) . ' baris gagal diekspor.';
+            $body .= ' '.number_format($failedRowsCount).' baris gagal diekspor.';
         }
 
         return $body;
@@ -59,12 +59,13 @@ class StockOpnameExporter extends Exporter
     public static function getCompletedNotification(Export $export): Notification
     {
         $notification = parent::getCompletedNotification($export);
-        $user = auth()->user();
+        $user = $export->user;
 
-        // Kirim ke database (lonceng) dan email
-        $notification
-            ->sendToDatabase($user)
-            ->sendToMail($user);
+        if ($user) {
+            $notification
+                ->sendToDatabase($user)
+                ->sendToMail($user);
+        }
 
         return $notification;
     }

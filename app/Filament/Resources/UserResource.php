@@ -5,16 +5,15 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\UserResource\Pages;
 use App\Models\Cabang;
 use App\Models\User;
-use Filament\Forms;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
+use Filament\Forms\Get;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
-use Illuminate\Support\Facades\Hash;
-use Filament\Forms\Get; // <-- Import Get
+use Illuminate\Support\Facades\Hash; // <-- Import Get
 
 class UserResource extends Resource
 {
@@ -66,23 +65,23 @@ class UserResource extends Resource
                     ->preload()
                     ->native(false)
                     // LOGIKA KUNCI: Hanya terlihat jika role='staf'
-                    ->visible(fn(Get $get): bool => $get('role') === 'staf')
+                    ->visible(fn (Get $get): bool => $get('role') === 'staf')
                     // LOGIKA KUNCI: Hanya wajib diisi jika role='staf'
-                    ->required(fn(Get $get): bool => $get('role') === 'staf'),
+                    ->required(fn (Get $get): bool => $get('role') === 'staf'),
 
                 // Input Password
                 TextInput::make('password')
                     ->password() // Tipe 'password' (menyembunyikan ketikan)
-                    ->required(fn(string $operation): bool => $operation === 'create') // Wajib saat 'create'
-                    ->dehydrated(fn(?string $state): bool => filled($state)) // Hanya simpan jika diisi (opsional saat edit)
-                    ->dehydrateStateUsing(fn(string $state): string => Hash::make($state)) // HASH PASSWORD
+                    ->required(fn (string $operation): bool => $operation === 'create') // Wajib saat 'create'
+                    ->dehydrated(fn (?string $state): bool => filled($state)) // Hanya simpan jika diisi (opsional saat edit)
+                    ->dehydrateStateUsing(fn (string $state): string => Hash::make($state)) // HASH PASSWORD
                     ->maxLength(255),
 
                 // Input Konfirmasi Password
                 TextInput::make('password_confirmation')
                     ->password()
                     ->label('Konfirmasi Password')
-                    ->required(fn(string $operation): bool => $operation === 'create')
+                    ->required(fn (string $operation): bool => $operation === 'create')
                     ->dehydrated(false) // Jangan simpan kolom ini di database
                     ->same('password'), // Validasi harus sama dengan 'password'
             ]);
@@ -101,7 +100,7 @@ class UserResource extends Resource
 
                 TextColumn::make('role')
                     ->badge() // Tampilkan sebagai 'badge' (label berwarna)
-                    ->color(fn(string $state): string => match ($state) {
+                    ->color(fn (string $state): string => match ($state) {
                         'admin' => 'danger', // Admin = merah
                         'staf' => 'success', // Staf = hijau
                     })

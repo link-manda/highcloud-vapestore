@@ -1,10 +1,10 @@
 <nav x-data="{ mobileMenuOpen: false }" class="sticky top-0 w-full z-50 bg-gallery-bg/80 backdrop-blur-md">
     <div class="flex justify-between items-center px-6 md:px-16 py-8 max-w-[1440px] mx-auto">
-        <a href="/" class="flex items-center gap-3 font-headline font-extrabold text-2xl tracking-tighter uppercase z-50 group">
-            <div class="relative w-8 h-8 rounded-full overflow-hidden border border-black/10 shadow-sm bg-white flex items-center justify-center p-0.5 shrink-0 group-hover:scale-105 transition-transform duration-300">
-                <img src="{{ asset('storage/cabang-images/logo_new.jpeg') }}" alt="Highcloud Logo" class="w-full h-full object-cover rounded-full">
+        <a href="/" class="flex items-center gap-4 font-headline font-extrabold text-2xl tracking-tighter uppercase z-50 group">
+            <div class="relative w-12 h-12 rounded-xl overflow-hidden shadow-md bg-white flex items-center justify-center p-1 shrink-0 group-hover:scale-105 transition-all duration-300 group-hover:shadow-lg border-2 border-transparent group-hover:border-gallery-dim/20">
+                <img src="{{ asset('storage/cabang-images/logo_new.jpeg') }}" alt="Highcloud Logo" class="w-full h-full object-contain rounded-lg">
             </div>
-            <span>Highcloud</span>
+            <span class="bg-gradient-to-r from-black to-gallery-muted bg-clip-text text-transparent">Highcloud</span>
         </a>
 
         <!-- Navigation Links (Desktop) -->

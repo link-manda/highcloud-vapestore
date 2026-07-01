@@ -2,8 +2,8 @@
 
 namespace App\Filament\Widgets;
 
-use Filament\Widgets\ChartWidget;
 use App\Models\BarangKeluarDetail;
+use Filament\Widgets\ChartWidget;
 use Illuminate\Support\Facades\DB;
 
 class KategoriTerlarisChart extends ChartWidget
@@ -11,7 +11,7 @@ class KategoriTerlarisChart extends ChartWidget
     protected static ?string $heading = 'Kategori Terlaris (7 Hari Terakhir)';
 
     // Setengah lebar
-    protected int | string | array $columnSpan = 'md:col-span-1';
+    protected int|string|array $columnSpan = 'md:col-span-1';
 
     // Muncul setelah (di kanan) grafik Penjualan
     protected static ?int $sort = 4;
@@ -44,14 +44,14 @@ class KategoriTerlarisChart extends ChartWidget
             'datasets' => [
                 [
                     'label' => 'Total Qty Terjual',
-                    'data' => $data->map(fn($value) => $value->total_qty),
+                    'data' => $data->map(fn ($value) => $value->total_qty),
 
                     // [PERBAIKAN 2]: Tambahkan warna yang konsisten untuk Bar chart
                     'backgroundColor' => '#ba9eff', // Neon Purple
                     'borderColor' => '#8455ef',
                 ],
             ],
-            'labels' => $data->map(fn($value) => $value->nama_kategori),
+            'labels' => $data->map(fn ($value) => $value->nama_kategori),
         ];
     }
 

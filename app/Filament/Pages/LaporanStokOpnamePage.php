@@ -4,29 +4,32 @@ namespace App\Filament\Pages;
 
 use App\Filament\Exports\StockOpnameExporter;
 use App\Models\StockOpnameDetail;
-use Filament\Pages\Page;
-use Filament\Tables\Contracts\HasTable;
-use Filament\Tables\Concerns\InteractsWithTable;
-use Filament\Tables\Table;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Filters\Filter;
+use App\Services\LaporanPdfService;
 use Filament\Forms\Components\DatePicker;
-use Filament\Tables\Filters\SelectFilter;
+use Filament\Pages\Page;
+use Filament\Tables;
 use Filament\Tables\Actions\Action;
 use Filament\Tables\Actions\ExportAction;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Concerns\InteractsWithTable;
+use Filament\Tables\Contracts\HasTable;
+use Filament\Tables\Filters\Filter;
+use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
-use Filament\Tables;
-use Filament\Notifications\Notification;
-use App\Services\LaporanPdfService;
 
 class LaporanStokOpnamePage extends Page implements HasTable
 {
     use InteractsWithTable;
 
     protected static ?string $navigationIcon = 'heroicon-o-document-text';
+
     protected static string $view = 'filament.pages.laporan-stok-opname-page';
+
     protected static ?string $navigationGroup = 'Laporan';
+
     protected static ?string $navigationLabel = 'Laporan Stok Opname';
+
     protected static ?string $title = 'Laporan Stok Opname';
 
     /**
@@ -155,7 +158,7 @@ class LaporanStokOpnamePage extends Page implements HasTable
                         return $service->generate(
                             'pdf.laporan-stok-opname',
                             $this->getFilteredTableQuery()->get(),
-                            'laporan-stok-opname-' . now()->format('Y-m-d')
+                            'laporan-stok-opname-'.now()->format('Y-m-d')
                         );
                     }),
                 Action::make('refresh')

@@ -43,7 +43,7 @@ class StokCabang extends Model
     public function tambahStok(int $jumlah): void
     {
         $this->update([
-            'stok_saat_ini' => $this->stok_saat_ini + $jumlah
+            'stok_saat_ini' => $this->stok_saat_ini + $jumlah,
         ]);
     }
 
@@ -58,7 +58,7 @@ class StokCabang extends Model
         }
 
         $this->update([
-            'stok_saat_ini' => $stokBaru
+            'stok_saat_ini' => $stokBaru,
         ]);
     }
 

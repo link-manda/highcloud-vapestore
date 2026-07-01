@@ -4,17 +4,18 @@ namespace App\Filament\Widgets;
 
 use App\Filament\Resources\ProdukResource;
 use App\Models\StokCabang;
+use Closure;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Filament\Widgets\TableWidget as BaseWidget;
-use Illuminate\Database\Eloquent\Builder;
-use Closure;
 
 class ProdukStokKritisWidget extends BaseWidget
 {
     // Properti yang mendefinisikan tampilan widget
     protected static ?string $heading = 'Item Stok Kritis (Butuh Segera Restock)';
-    protected int | string | array $columnSpan = 'full'; // Agar widget ini mengambil lebar penuh
+
+    protected int|string|array $columnSpan = 'full'; // Agar widget ini mengambil lebar penuh
+
     protected static ?int $sort = 5; // Urutan widget di dashboard (setelah Stats dan Grafik)
 
     /**
@@ -84,7 +85,6 @@ class ProdukStokKritisWidget extends BaseWidget
      */
     protected function getTableRecordUrlUsing(): ?Closure
     {
-        return fn(StokCabang $record): string =>
-        ProdukResource::getUrl('edit', ['record' => $record->varianProduk->produk]);
+        return fn (StokCabang $record): string => ProdukResource::getUrl('edit', ['record' => $record->varianProduk->produk]);
     }
 }

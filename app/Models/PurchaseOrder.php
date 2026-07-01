@@ -2,12 +2,11 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use App\Models\BarangMasukDetail;
-use Illuminate\Database\Eloquent\Casts\Attribute;
 
 class PurchaseOrder extends Model
 {
@@ -59,7 +58,7 @@ class PurchaseOrder extends Model
     protected function statusColor(): Attribute
     {
         return new Attribute(
-            get: fn() => match ($this->status) {
+            get: fn () => match ($this->status) {
                 'Draft' => 'gray',
                 'Submitted' => 'primary',
                 'Partially Received' => 'warning',
@@ -70,24 +69,20 @@ class PurchaseOrder extends Model
         );
     }
 
-
     /**
      * [BARU] Fungsi helper untuk mengkalkulasi ulang status PO
      * berdasarkan barang yang sudah diterima.
-     *
-     * @param int $poId
-     * @return void
      */
     public static function updateStatusAfterReceiving(int $poId): void
     {
         // ... (Kode Anda sebelumnya sudah benar) ...
         $po = PurchaseOrder::with('details')->find($poId);
-        if (!$po) {
+        if (! $po) {
             return;
         }
 
         // 1. Hitung total kuantitas yang dipesan di PO
-        $totalDipesan = $po->details->sum('jumlah'); // Pastikan 'jumlah' adalah kolom yang benar
+        $totalDipesan = $po->details->sum('jumlah_pesan'); // Pakai 'jumlah_pesan'
 
         // 2. Hitung total kuantitas yang SUDAH DITERIMA
         //    dari SEMUA BarangMasuk yang terkait dengan PO ini
@@ -100,15 +95,16 @@ class PurchaseOrder extends Model
         if ($po->status == 'Draft') {
             // Jangan ubah status jika masih Draft
             $po->save();
+
             return;
         }
 
         if ($totalDiterima == 0) {
-            $po->status = 'Dikirim';
+            $po->status = 'Submitted';
         } elseif ($totalDiterima >= $totalDipesan) {
-            $po->status = 'Selesai';
+            $po->status = 'Completed';
         } elseif ($totalDiterima > 0 && $totalDiterima < $totalDipesan) {
-            $po->status = 'Sebagian Diterima';
+            $po->status = 'Partially Received';
         }
 
         $po->save();

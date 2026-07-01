@@ -16,13 +16,15 @@ class StokMinimumNotification extends Notification implements ShouldQueue // Imp
     use Queueable;
 
     public StokCabang $stokCabang;
+
     public VarianProduk $varianProduk;
+
     public Cabang $cabang;
 
     /**
      * Create a new notification instance.
      *
-     * @param StokCabang $stokCabang Record stok yang mencapai batas minimum
+     * @param  StokCabang  $stokCabang  Record stok yang mencapai batas minimum
      */
     public function __construct(StokCabang $stokCabang)
     {
@@ -59,7 +61,7 @@ class StokMinimumNotification extends Notification implements ShouldQueue // Imp
             ->line("Stok untuk produk **{$namaProdukLengkap}** di cabang **{$namaCabang}** telah mencapai atau di bawah batas minimum.")
             ->line("Stok Saat Ini: **{$stokSaatIni}**")
             ->line("Batas Minimum: **{$stokMinimum}**")
-            ->line("Mohon segera lakukan pengecekan dan pertimbangkan untuk melakukan pengadaan barang (restock).")
+            ->line('Mohon segera lakukan pengecekan dan pertimbangkan untuk melakukan pengadaan barang (restock).')
             ->action('Lihat Stok Varian', url(route('filament.admin.resources.varian-produks.view', ['record' => $this->varianProduk->id]))) // Link ke halaman view varian
             ->line('Terima kasih.');
     }

@@ -12,6 +12,13 @@ class StockOpnameDetail extends Model
 
     protected $table = 'stock_opname_details';
 
+    protected static function booted(): void
+    {
+        static::saving(function (self $detail): void {
+            $detail->syncSelisih();
+        });
+    }
+
     protected $fillable = [
         'id_stock_opname',
         'id_varian_produk',
@@ -51,7 +58,15 @@ class StockOpnameDetail extends Model
      */
     public function calculateSelisih(): int
     {
-        return $this->stok_fisik - $this->stok_sistem;
+        return (int) $this->stok_fisik - (int) $this->stok_sistem;
+    }
+
+    /**
+     * Sinkronkan selisih sebelum detail disimpan
+     */
+    public function syncSelisih(): void
+    {
+        $this->selisih = $this->calculateSelisih();
     }
 
     /**
@@ -59,7 +74,7 @@ class StockOpnameDetail extends Model
      */
     public function updateSelisih(): void
     {
-        $this->selisih = $this->calculateSelisih();
+        $this->syncSelisih();
         $this->save();
     }
 }

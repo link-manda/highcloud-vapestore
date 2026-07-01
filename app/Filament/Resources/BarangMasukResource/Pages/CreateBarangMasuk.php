@@ -7,14 +7,13 @@ use App\Models\BarangMasuk;
 use App\Models\BarangMasukDetail; // <-- [PENTING] Import model ini
 use App\Models\PurchaseOrder;
 use App\Models\StokCabang;
-use Filament\Actions;
+use Filament\Notifications\Notification as FilamentNotification;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Filament\Notifications\Notification as FilamentNotification;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Carbon;
 
 class CreateBarangMasuk extends CreateRecord
 {
@@ -39,36 +38,37 @@ class CreateBarangMasuk extends CreateRecord
         // Atur cabang tujuan jika staf
         if ($user->role === 'staf' && $user->id_cabang) {
             $data['id_cabang_tujuan'] = $user->id_cabang;
-            Log::info('[mutateBM] Staff role detected. Cabang Tujuan ID set: ' . $data['id_cabang_tujuan']);
+            Log::info('[mutateBM] Staff role detected. Cabang Tujuan ID set: '.$data['id_cabang_tujuan']);
         }
 
         // 2. Generate Nomor Dokumen Unik
         try {
             $today = Carbon::today();
-            $prefix = 'BM-' . $today->format('Ymd');
+            $prefix = 'BM-'.$today->format('Ymd');
 
-            $lastTransaction = BarangMasuk::where('nomor_transaksi', 'like', $prefix . '-%')
+            $lastTransaction = BarangMasuk::where('nomor_transaksi', 'like', $prefix.'-%')
                 ->orderBy('nomor_transaksi', 'desc')
                 ->first();
 
             $nextSequence = 1;
             if ($lastTransaction && preg_match('/-(\d+)$/', $lastTransaction->nomor_transaksi, $matches)) {
-                $nextSequence = (int)$matches[1] + 1;
+                $nextSequence = (int) $matches[1] + 1;
             }
 
-            $data['nomor_transaksi'] = $prefix . '-' . str_pad($nextSequence, 4, '0', STR_PAD_LEFT);
-            Log::info('[mutateBM] Generated Nomor Transaksi: ' . $data['nomor_transaksi']);
+            $data['nomor_transaksi'] = $prefix.'-'.str_pad($nextSequence, 4, '0', STR_PAD_LEFT);
+            Log::info('[mutateBM] Generated Nomor Transaksi: '.$data['nomor_transaksi']);
         } catch (\Exception $e) {
-            Log::error('[mutateBM] Error generating Nomor Transaksi: ' . $e->getMessage());
+            Log::error('[mutateBM] Error generating Nomor Transaksi: '.$e->getMessage());
             FilamentNotification::make()
                 ->title('Gagal Membuat Nomor Transaksi')
-                ->body('Terjadi kesalahan: ' . $e->getMessage())
+                ->body('Terjadi kesalahan: '.$e->getMessage())
                 ->danger()
                 ->send();
             throw $e;
         }
 
         Log::info('--- Finished mutateFormDataBeforeCreate ---');
+
         return $data;
     }
 
@@ -78,7 +78,7 @@ class CreateBarangMasuk extends CreateRecord
      */
     protected function afterCreate(): void
     {
-        Log::info('--- Starting afterCreate for BarangMasuk ID: ' . $this->record->id . ' ---');
+        Log::info('--- Starting afterCreate for BarangMasuk ID: '.$this->record->id.' ---');
         $barangMasuk = $this->record;
         $idCabangTujuan = $barangMasuk->id_cabang_tujuan;
 
@@ -93,6 +93,9 @@ class CreateBarangMasuk extends CreateRecord
                 ->body('Tidak ada item detail yang ditemukan untuk disimpan.')
                 ->danger()
                 ->send();
+
+            $barangMasuk->delete();
+
             return;
         }
 
@@ -103,13 +106,14 @@ class CreateBarangMasuk extends CreateRecord
             // 2. Loop data form dan BUAT DETAIL + UPDATE STOK
             foreach ($detailsData as $detail) {
                 // Pastikan tipe data benar
-                $jumlah = (int)($detail['jumlah'] ?? 0);
-                $harga = (float)($detail['harga_beli_saat_transaksi'] ?? 0);
+                $jumlah = (int) ($detail['jumlah'] ?? 0);
+                $harga = (float) ($detail['harga_beli_saat_transaksi'] ?? 0);
                 $subtotal = $jumlah * $harga;
                 $varianId = $detail['id_varian_produk'] ?? null;
 
                 if ($jumlah <= 0 || $varianId === null) {
                     Log::warning('[afterCreate-BM] Skipping invalid item detail.', $detail);
+
                     continue; // Lewati item yang tidak valid
                 }
 
@@ -136,7 +140,7 @@ class CreateBarangMasuk extends CreateRecord
 
             // 3. LOGIKA UPDATE PURCHASE ORDER (PO)
             if ($barangMasuk->id_purchase_order) {
-                Log::info('[afterCreate-BM] PO ID detected: ' . $barangMasuk->id_purchase_order . '. Starting PO Update...');
+                Log::info('[afterCreate-BM] PO ID detected: '.$barangMasuk->id_purchase_order.'. Starting PO Update...');
                 $po = PurchaseOrder::with('details')->find($barangMasuk->id_purchase_order);
 
                 if ($po) {
@@ -144,10 +148,12 @@ class CreateBarangMasuk extends CreateRecord
 
                     // Loop lagi data form untuk update PO
                     foreach ($detailsData as $itemDiterima) {
-                        $jumlahDiterima = (int)($itemDiterima['jumlah'] ?? 0);
+                        $jumlahDiterima = (int) ($itemDiterima['jumlah'] ?? 0);
                         $varianId = $itemDiterima['id_varian_produk'] ?? null;
 
-                        if ($jumlahDiterima <= 0 || $varianId === null) continue;
+                        if ($jumlahDiterima <= 0 || $varianId === null) {
+                            continue;
+                        }
 
                         $poDetail = $po->details->firstWhere('id_varian_produk', $varianId);
 
@@ -164,10 +170,10 @@ class CreateBarangMasuk extends CreateRecord
 
                     if ($totalDiterimaPo >= $totalDipesanPo) {
                         $po->status = 'Completed';
-                        Log::info("[afterCreate-BM] PO Status changed to: Completed");
-                    } else if ($totalDiterimaPo > 0) {
+                        Log::info('[afterCreate-BM] PO Status changed to: Completed');
+                    } elseif ($totalDiterimaPo > 0) {
                         $po->status = 'Partially Received';
-                        Log::info("[afterCreate-BM] PO Status changed to: Partially Received");
+                        Log::info('[afterCreate-BM] PO Status changed to: Partially Received');
                     }
 
                     $po->save();
@@ -180,14 +186,17 @@ class CreateBarangMasuk extends CreateRecord
             Log::info('[afterCreate-BM] DB Transaction successful.');
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('[afterCreate-BM] ERROR during transaction: ' . $e->getMessage());
+            Log::error('[afterCreate-BM] ERROR during transaction: '.$e->getMessage());
             FilamentNotification::make()
                 ->title('Gagal Memperbarui Stok atau PO')
-                ->body('Terjadi kesalahan: ' . $e->getMessage())
+                ->body('Terjadi kesalahan: '.$e->getMessage())
                 ->danger()
                 ->send();
+
+            // Hapus record Induk yang sudah terlanjur dibuat oleh Filament
+            $barangMasuk->delete();
         }
 
-        Log::info('--- Finished afterCreate for BarangMasuk ID: ' . $this->record->id . ' ---');
+        Log::info('--- Finished afterCreate for BarangMasuk ID: '.$this->record->id.' ---');
     }
 }

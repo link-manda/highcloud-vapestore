@@ -20,19 +20,19 @@ class StokCabangExporter extends Exporter
 
             ExportColumn::make('varianProduk.produk.kategori.nama_kategori')
                 ->label('Kategori')
-                ->formatStateUsing(fn($record) => $record->varianProduk?->produk?->kategori?->nama_kategori ?? '-'),
+                ->formatStateUsing(fn ($record) => $record->varianProduk?->produk?->kategori?->nama_kategori ?? '-'),
 
             ExportColumn::make('varianProduk.produk.nama_produk')
                 ->label('Produk')
-                ->formatStateUsing(fn($record) => $record->varianProduk?->produk?->nama_produk ?? '-'),
+                ->formatStateUsing(fn ($record) => $record->varianProduk?->produk?->nama_produk ?? '-'),
 
             ExportColumn::make('varianProduk.nama_varian')
                 ->label('Varian')
-                ->formatStateUsing(fn($record) => $record->varianProduk?->nama_varian ?? '-'),
+                ->formatStateUsing(fn ($record) => $record->varianProduk?->nama_varian ?? '-'),
 
             ExportColumn::make('varianProduk.sku_code')
                 ->label('SKU')
-                ->formatStateUsing(fn($record) => $record->varianProduk?->sku_code ?? '-'),
+                ->formatStateUsing(fn ($record) => $record->varianProduk?->sku_code ?? '-'),
 
             ExportColumn::make('stok_saat_ini')
                 ->label('Stok Saat Ini'),
@@ -42,13 +42,14 @@ class StokCabangExporter extends Exporter
 
             ExportColumn::make('varianProduk.harga_beli')
                 ->label('Harga Beli (Satuan)')
-                ->formatStateUsing(fn($record) => $record->varianProduk?->harga_beli ?? 0),
+                ->formatStateUsing(fn ($record) => $record->varianProduk?->harga_beli ?? 0),
 
             ExportColumn::make('total_nilai_aset')
                 ->label('Total Nilai Aset')
                 ->formatStateUsing(function (StokCabang $record) {
                     $stok = $record->stok_saat_ini ?? 0;
                     $harga_beli = $record->varianProduk?->harga_beli ?? 0;
+
                     return (float) $stok * (float) $harga_beli;
                 }),
         ];
@@ -59,10 +60,10 @@ class StokCabangExporter extends Exporter
      */
     public static function getCompletedNotificationBody(Export $export): string
     {
-        $body = 'Ekspor laporan sisa stok Anda telah selesai dan ' . number_format($export->successful_rows) . ' baris telah diekspor.';
+        $body = 'Ekspor laporan sisa stok Anda telah selesai dan '.number_format($export->successful_rows).' baris telah diekspor.';
 
         if ($failedRowsCount = $export->getFailedRowsCount()) {
-            $body .= ' ' . number_format($failedRowsCount) . ' baris gagal diekspor.';
+            $body .= ' '.number_format($failedRowsCount).' baris gagal diekspor.';
         }
 
         return $body;
@@ -78,14 +79,13 @@ class StokCabangExporter extends Exporter
     {
         // Ambil notifikasi default (yang sudah berisi tombol download)
         $notification = parent::getCompletedNotification($export);
+        $user = $export->user;
 
-        // Kirim ke pengguna yang sedang login
-        $user = auth()->user();
-
-        // Perintahkan notifikasi untuk dikirim ke KEDUA channel
-        $notification
-            ->sendToDatabase($user) // Untuk ikon lonceng (bell)
-            ->sendToMail($user);     // Untuk email (Mailtrap)
+        if ($user) {
+            $notification
+                ->sendToDatabase($user)
+                ->sendToMail($user);
+        }
 
         return $notification;
     }

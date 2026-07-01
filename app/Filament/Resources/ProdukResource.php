@@ -3,10 +3,8 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\ProdukResource\Pages;
-use Illuminate\Database\Eloquent\Model;
 use App\Filament\Resources\ProdukResource\RelationManagers\VarianProduksRelationManager;
 use App\Models\Produk;
-use Filament\Forms;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -15,6 +13,7 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Model;
 
 class ProdukResource extends Resource
 {

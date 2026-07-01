@@ -33,7 +33,7 @@ return new class extends Migration
             $table->decimal('subtotal', 15, 2); // jumlah * harga_jual_saat_transaksi
             $table->timestamps();
 
-             // Index untuk performa query
+            // Index untuk performa query
             $table->index('id_barang_keluar');
             $table->index('id_varian_produk');
         });

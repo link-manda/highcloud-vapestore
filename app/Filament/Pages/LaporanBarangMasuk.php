@@ -5,31 +5,30 @@ namespace App\Filament\Pages;
 use App\Filament\Exports\BarangMasukExporter;
 use App\Models\BarangMasuk;
 use App\Models\Cabang;
-use App\Models\Supplier;
+use App\Services\LaporanPdfService;
 use Filament\Forms\Components\DatePicker;
 use Filament\Pages\Page;
-use Filament\Tables\Contracts\HasTable;
-use Filament\Tables\Concerns\InteractsWithTable;
-use Filament\Tables\Table;
 use Filament\Tables\Actions\Action;
 use Filament\Tables\Actions\ExportAction;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Concerns\InteractsWithTable;
+use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Number;
-use Filament\Tables;
+use Filament\Tables\Table;
 use Illuminate\Contracts\View\View;
-use Illuminate\Database\Query\Builder as QueryBuilder;
-use App\Services\LaporanPdfService;
+use Illuminate\Database\Eloquent\Builder;
 
 class LaporanBarangMasuk extends Page implements HasTable
 {
     use InteractsWithTable;
 
     protected static ?string $navigationIcon = 'heroicon-o-document-arrow-down';
+
     protected static ?string $navigationLabel = 'Laporan Barang Masuk';
+
     protected static ?string $navigationGroup = 'Laporan';
+
     protected static ?string $title = 'Laporan Barang Masuk';
 
     protected static string $view = 'filament.pages.laporan-barang-masuk';
@@ -110,11 +109,11 @@ class LaporanBarangMasuk extends Page implements HasTable
                         return $query
                             ->when(
                                 $data['created_from'],
-                                fn(Builder $query, $date): Builder => $query->whereDate('tanggal_masuk', '>=', $date),
+                                fn (Builder $query, $date): Builder => $query->whereDate('tanggal_masuk', '>=', $date),
                             )
                             ->when(
                                 $data['created_until'],
-                                fn(Builder $query, $date): Builder => $query->whereDate('tanggal_masuk', '<=', $date),
+                                fn (Builder $query, $date): Builder => $query->whereDate('tanggal_masuk', '<=', $date),
                             );
                     }),
                 SelectFilter::make('id_supplier')
@@ -147,7 +146,7 @@ class LaporanBarangMasuk extends Page implements HasTable
                         return $service->generate(
                             'pdf.laporan-barang-masuk',
                             $this->getFilteredTableQuery()->get(),
-                            'laporan-barang-masuk-' . now()->format('Y-m-d')
+                            'laporan-barang-masuk-'.now()->format('Y-m-d')
                         );
                     }),
                 Action::make('refresh')

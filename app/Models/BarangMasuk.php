@@ -49,7 +49,6 @@ class BarangMasuk extends Model
      * return $this->belongsTo(Cabang::class, 'id_cabang_sumber');
      * }
      */
-
     public function purchaseOrder(): BelongsTo
     {
         return $this->belongsTo(PurchaseOrder::class, 'id_purchase_order');

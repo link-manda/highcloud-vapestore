@@ -3,16 +3,16 @@
 namespace App\Filament\Resources\TransferStokResource\Pages;
 
 use App\Filament\Resources\TransferStokResource;
+use App\Models\StokCabang;
 use App\Models\TransferStok;
 use App\Models\TransferStokDetail;
-use App\Models\StokCabang;
-use Filament\Actions;
+use App\Models\VarianProduk;
+use Filament\Notifications\Notification as FilamentNotification;
 use Filament\Resources\Pages\CreateRecord;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Filament\Notifications\Notification as FilamentNotification;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Carbon;
 use Illuminate\Validation\ValidationException;
 
 class CreateTransferStok extends CreateRecord
@@ -39,36 +39,37 @@ class CreateTransferStok extends CreateRecord
         // 2. Set Cabang Sumber (jika Staf)
         if ($user->role === 'staf' && $user->id_cabang) {
             $data['id_cabang_sumber'] = $user->id_cabang;
-            Log::info('[mutateTS] Staff role detected. Cabang Sumber ID set: ' . $data['id_cabang_sumber']);
+            Log::info('[mutateTS] Staff role detected. Cabang Sumber ID set: '.$data['id_cabang_sumber']);
         }
 
         // 3. Generate Nomor Dokumen Unik
         try {
             $today = Carbon::today();
-            $prefix = 'TS-' . $today->format('Ymd');
+            $prefix = 'TS-'.$today->format('Ymd');
 
-            $lastTransaction = TransferStok::where('nomor_transfer', 'like', $prefix . '-%')
+            $lastTransaction = TransferStok::where('nomor_transfer', 'like', $prefix.'-%')
                 ->orderBy('nomor_transfer', 'desc')
                 ->first();
 
             $nextSequence = 1;
             if ($lastTransaction && preg_match('/-(\d+)$/', $lastTransaction->nomor_transfer, $matches)) {
-                $nextSequence = (int)$matches[1] + 1;
+                $nextSequence = (int) $matches[1] + 1;
             }
 
-            $data['nomor_transfer'] = $prefix . '-' . str_pad($nextSequence, 4, '0', STR_PAD_LEFT);
-            Log::info('[mutateTS] Generated Nomor Transfer: ' . $data['nomor_transfer']);
+            $data['nomor_transfer'] = $prefix.'-'.str_pad($nextSequence, 4, '0', STR_PAD_LEFT);
+            Log::info('[mutateTS] Generated Nomor Transfer: '.$data['nomor_transfer']);
         } catch (\Exception $e) {
-            Log::error('[mutateTS] Error generating Nomor Transfer: ' . $e->getMessage());
+            Log::error('[mutateTS] Error generating Nomor Transfer: '.$e->getMessage());
             FilamentNotification::make()
                 ->title('Gagal Membuat Nomor Transfer')
-                ->body('Terjadi kesalahan: ' . $e->getMessage())
+                ->body('Terjadi kesalahan: '.$e->getMessage())
                 ->danger()
                 ->send();
             throw $e;
         }
 
         Log::info('--- Finished mutateFormDataBeforeCreate ---');
+
         return $data;
     }
 
@@ -84,43 +85,46 @@ class CreateTransferStok extends CreateRecord
         $details = $data['details'] ?? [];
 
         foreach ($details as $index => $detail) {
-            $jumlahTransfer = (int)($detail['jumlah'] ?? 0);
+            $jumlahTransfer = (int) ($detail['jumlah'] ?? 0);
             $varianId = $detail['id_varian_produk'] ?? null;
 
-            if ($jumlahTransfer <= 0 || $varianId === null) continue;
+            if ($jumlahTransfer <= 0 || $varianId === null) {
+                continue;
+            }
 
             $stok = StokCabang::where('id_cabang', $cabangSumberId)
                 ->where('id_varian_produk', $varianId)
                 ->first();
 
             // Cek jika stok tidak ada ATAU stok tidak cukup
-            if (!$stok || $stok->stok_saat_ini < $jumlahTransfer) {
+            if (! $stok || $stok->stok_saat_ini < $jumlahTransfer) {
                 $namaVarian = VarianProduk::find($varianId)->nama_varian ?? "Item {$varianId}";
                 Log::warning("[beforeCreate-TS] Validation Failed: Stok '{$namaVarian}' tidak cukup.");
+
+                $sisaStok = $stok?->stok_saat_ini ?? 0;
 
                 // Hentikan proses dan kirim notifikasi error
                 FilamentNotification::make()
                     ->title('Validasi Gagal')
-                    ->body("Stok untuk item '{$namaVarian}' di cabang sumber tidak mencukupi (Sisa: {$stok->stok_saat_ini}, Diminta: {$jumlahTransfer}).")
+                    ->body("Stok untuk item '{$namaVarian}' di cabang sumber tidak mencukupi (Sisa: {$sisaStok}, Diminta: {$jumlahTransfer}).")
                     ->danger()
                     ->send();
 
                 // Menggunakan ValidationException agar lebih standar
                 throw ValidationException::withMessages([
-                    "details.{$index}.jumlah" => "Stok tidak cukup. Sisa: {$stok->stok_saat_ini}",
+                    "details.{$index}.jumlah" => "Stok tidak cukup. Sisa: {$sisaStok}",
                 ]);
             }
         }
         Log::info('[beforeCreate-TS] Backend Validation Successful.');
     }
 
-
     /**
      * Logika Inti: Pindahkan Stok setelah data Induk tersimpan
      */
     protected function afterCreate(): void
     {
-        Log::info('--- Starting afterCreate for TransferStok ID: ' . $this->record->id . ' ---');
+        Log::info('--- Starting afterCreate for TransferStok ID: '.$this->record->id.' ---');
         $transferStok = $this->record;
         $cabangSumberId = $transferStok->id_cabang_sumber;
         $cabangTujuanId = $transferStok->id_cabang_tujuan;
@@ -131,10 +135,12 @@ class CreateTransferStok extends CreateRecord
             Log::info('[afterCreate-TS] Starting Stok Transfer Logic...');
 
             foreach ($detailsData as $detail) {
-                $jumlah = (int)($detail['jumlah'] ?? 0);
+                $jumlah = (int) ($detail['jumlah'] ?? 0);
                 $varianId = $detail['id_varian_produk'] ?? null;
 
-                if ($jumlah <= 0 || $varianId === null) continue;
+                if ($jumlah <= 0 || $varianId === null) {
+                    continue;
+                }
 
                 // 1. Buat record detail
                 TransferStokDetail::create([
@@ -144,10 +150,17 @@ class CreateTransferStok extends CreateRecord
                 ]);
 
                 // 2. Kurangi Stok Cabang Sumber (Decrement)
-                // Kita sudah validasi di beforeCreate, jadi seharusnya aman
-                StokCabang::where('id_cabang', $cabangSumberId)
+                // Kita mengunci baris stok agar aman dari race condition
+                $stokSumber = StokCabang::where('id_cabang', $cabangSumberId)
                     ->where('id_varian_produk', $varianId)
-                    ->decrement('stok_saat_ini', $jumlah);
+                    ->lockForUpdate()
+                    ->first();
+
+                if (! $stokSumber || $stokSumber->stok_saat_ini < $jumlah) {
+                    throw new \Exception('Stok sumber tidak mencukupi saat proses transfer.');
+                }
+
+                $stokSumber->decrement('stok_saat_ini', $jumlah);
                 Log::info("[afterCreate-TS] Decremented Varian ID {$varianId} from Cabang {$cabangSumberId} by {$jumlah}.");
 
                 // 3. Tambah Stok Cabang Tujuan (Increment)
@@ -163,10 +176,10 @@ class CreateTransferStok extends CreateRecord
             Log::info('[afterCreate-TS] DB Transaction successful.');
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('[afterCreate-TS] ERROR during transaction: ' . $e->getMessage());
+            Log::error('[afterCreate-TS] ERROR during transaction: '.$e->getMessage());
             FilamentNotification::make()
                 ->title('Gagal Memindahkan Stok')
-                ->body('Terjadi kesalahan: ' . $e->getMessage())
+                ->body('Terjadi kesalahan: '.$e->getMessage())
                 ->danger()
                 ->send();
 

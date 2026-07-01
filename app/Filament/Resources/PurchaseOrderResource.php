@@ -3,33 +3,35 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\PurchaseOrderResource\Pages;
-use App\Filament\Resources\PurchaseOrderResource\RelationManagers;
 use App\Models\PurchaseOrder;
 use App\Models\VarianProduk;
-use App\Models\StokCabang;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Forms\Get;
+use Filament\Forms\Set;
+use Filament\Infolists;
+use Filament\Infolists\Infolist;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Filament\Infolists;
-use Filament\Infolists\Infolist;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
-use Filament\Forms\Get;
-use Filament\Forms\Set;
 use Illuminate\Support\Number;
 
 class PurchaseOrderResource extends Resource
 {
     protected static ?string $model = PurchaseOrder::class;
+
     protected static ?string $navigationIcon = 'heroicon-o-shopping-cart';
+
     protected static ?string $navigationGroup = 'Transaksi Inventori';
+
     protected static ?int $navigationSort = 1;
+
     protected static ?string $recordTitleAttribute = 'nomor_po';
 
     // Custom navigation label (singular)
     protected static ?string $navigationLabel = 'Purchase Order';
+
     public static function form(Form $form): Form
     {
         return $form
@@ -40,7 +42,7 @@ class PurchaseOrderResource extends Resource
                             ->schema([
                                 Forms\Components\TextInput::make('nomor_po')
                                     ->label('Nomor PO')
-                                    ->default('PO-' . date('Ymd') . '-XXXX') // Placeholder default
+                                    ->default('PO-'.date('Ymd').'-XXXX') // Placeholder default
                                     ->disabled() // Nomor PO dibuat otomatis
                                     ->dehydrated(), // Pastikan dikirim saat create
                                 Forms\Components\DatePicker::make('tanggal_po')
@@ -70,7 +72,7 @@ class PurchaseOrderResource extends Resource
                                     ->default('Draft')
                                     ->required()
                                     ->visibleOn('create') // Hanya terlihat saat create
-                                    ->disabled(fn(string $operation): bool => $operation !== 'create')
+                                    ->disabled(fn (string $operation): bool => $operation !== 'create'),
                             ])->columns(2),
 
                         Forms\Components\Section::make('Catatan')
@@ -96,7 +98,7 @@ class PurchaseOrderResource extends Resource
                                                 // Eager load relasi produk untuk menampilkan nama lengkap
                                                 $query->with('produk');
                                             })
-                                            ->getOptionLabelFromRecordUsing(fn(VarianProduk $record) => "{$record->produk->nama_produk} - {$record->nama_varian}")
+                                            ->getOptionLabelFromRecordUsing(fn (VarianProduk $record) => "{$record->produk->nama_produk} - {$record->nama_varian}")
                                             ->searchable()
                                             ->getSearchResultsUsing(function (string $search): array {
                                                 return VarianProduk::query()
@@ -110,7 +112,7 @@ class PurchaseOrderResource extends Resource
                                                     })
                                                     ->limit(50)
                                                     ->get()
-                                                    ->mapWithKeys(fn(VarianProduk $record): array => [
+                                                    ->mapWithKeys(fn (VarianProduk $record): array => [
                                                         $record->id => "{$record->produk->nama_produk} - {$record->nama_varian}",
                                                     ])
                                                     ->all();
@@ -176,6 +178,7 @@ class PurchaseOrderResource extends Resource
                                                 $harga = (float) $get('harga_beli_saat_po');
                                                 $jumlah = (int) $get('jumlah_pesan');
                                                 $subtotal = $jumlah * $harga;
+
                                                 // Update state subtotal (jika perlu, tapi sudah dihandle afterStateUpdated lain)
                                                 // $set('subtotal', $subtotal); // Tidak perlu $set di placeholder
                                                 return Number::currency($subtotal, 'IDR');
@@ -184,11 +187,11 @@ class PurchaseOrderResource extends Resource
                                         // Hidden input untuk MENYIMPAN subtotal
                                         Forms\Components\Hidden::make('subtotal')->default(0),
 
-
                                     ])
                                     ->itemLabel(function (array $state): ?string {
                                         // Menampilkan nama varian di header repeater item
                                         $varian = VarianProduk::with('produk')->find($state['id_varian_produk'] ?? null); // Eager load produk
+
                                         return $varian ? "{$varian->produk->nama_produk} - {$varian->nama_varian}" : null;
                                     })
                                     ->columns([
@@ -198,9 +201,10 @@ class PurchaseOrderResource extends Resource
                                     ->live() // Agar total harga terupdate live
                                     ->mutateRelationshipDataBeforeCreateUsing(function (array $data): array {
                                         // Pastikan subtotal dihitung sebelum disimpan ke DB (safety net)
-                                        $jumlah = (int)($data['jumlah_pesan'] ?? 0);
-                                        $harga = (float)($data['harga_beli_saat_po'] ?? 0);
+                                        $jumlah = (int) ($data['jumlah_pesan'] ?? 0);
+                                        $harga = (float) ($data['harga_beli_saat_po'] ?? 0);
                                         $data['subtotal'] = $jumlah * $harga;
+
                                         return $data;
                                     })
                                     ->afterStateUpdated(function (Get $get, Set $set) {
@@ -208,7 +212,7 @@ class PurchaseOrderResource extends Resource
                                         self::updateTotalHarga($get, $set);
                                     })
                                     ->deleteAction(
-                                        fn(Forms\Components\Actions\Action $action) => $action->after(fn(Get $get, Set $set) => self::updateTotalHarga($get, $set)),
+                                        fn (Forms\Components\Actions\Action $action) => $action->after(fn (Get $get, Set $set) => self::updateTotalHarga($get, $set)),
                                     )
                                     ->reorderable(false) // Biasanya PO tidak perlu reorder
                                     ->defaultItems(1) // Minimal 1 item saat create
@@ -240,8 +244,8 @@ class PurchaseOrderResource extends Resource
         if (is_array($details)) {
             foreach ($details as $key => $detail) { // Tambahkan $key
                 // Kalkulasi subtotal per item
-                $jumlah = (int)($detail['jumlah_pesan'] ?? 0);
-                $harga = (float)($detail['harga_beli_saat_po'] ?? 0);
+                $jumlah = (int) ($detail['jumlah_pesan'] ?? 0);
+                $harga = (float) ($detail['harga_beli_saat_po'] ?? 0);
                 $subtotalItem = $jumlah * $harga;
                 // Update state subtotal di dalam item repeater (PENTING)
                 $set("details.{$key}.subtotal", $subtotalItem); // Update state hidden input subtotal
@@ -253,7 +257,6 @@ class PurchaseOrderResource extends Resource
         // Update state total harga di form utama
         $set('total_harga', $total);
     }
-
 
     public static function table(Table $table): Table
     {
@@ -278,7 +281,7 @@ class PurchaseOrderResource extends Resource
                 Tables\Columns\TextColumn::make('status')
                     ->badge() // Tampilkan sebagai badge
                     // PERBAIKAN DI BARIS 260: Tambahkan '?? 'gray''
-                    ->color(fn(PurchaseOrder $record): string => $record->status_color ?? 'gray') // Gunakan accessor dengan fallback
+                    ->color(fn (PurchaseOrder $record): string => $record->status_color ?? 'gray') // Gunakan accessor dengan fallback
                     ->sortable(),
                 Tables\Columns\TextColumn::make('total_harga')
                     ->label('Total Harga')
@@ -322,9 +325,9 @@ class PurchaseOrderResource extends Resource
                 Tables\Actions\ViewAction::make(),
                 // Edit hanya jika status Draft
                 Tables\Actions\EditAction::make()
-                    ->visible(fn(PurchaseOrder $record): bool => $record->status === 'Draft'),
+                    ->visible(fn (PurchaseOrder $record): bool => $record->status === 'Draft'),
                 Tables\Actions\DeleteAction::make()
-                    ->visible(fn(PurchaseOrder $record): bool => $record->status === 'Draft'),
+                    ->visible(fn (PurchaseOrder $record): bool => $record->status === 'Draft'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -349,7 +352,7 @@ class PurchaseOrderResource extends Resource
                         Infolists\Components\TextEntry::make('tanggal_estimasi_tiba')->label('Estimasi Tiba')->date('d M Y')->placeholder('-'),
                         Infolists\Components\TextEntry::make('status')
                             ->badge()
-                            ->color(fn(PurchaseOrder $record): string => $record->status_color ?? 'gray'), // PERBAIKAN: Tambahkan default 'gray'
+                            ->color(fn (PurchaseOrder $record): string => $record->status_color ?? 'gray'), // PERBAIKAN: Tambahkan default 'gray'
                         Infolists\Components\TextEntry::make('userPembuat.name')->label('Dibuat Oleh')->placeholder('-'), // Tambahkan placeholder
                         Infolists\Components\TextEntry::make('catatan')->label('Catatan')->placeholder('-')->columnSpanFull(),
                     ])->columns(3), // 3 kolom untuk info header
@@ -365,7 +368,8 @@ class PurchaseOrderResource extends Resource
                                     ->getStateUsing(function ($record): string {
                                         $namaProduk = $record->varianProduk?->produk?->nama_produk ?? '[Produk Dihapus]';
                                         $namaVarian = $record->varianProduk?->nama_varian ?? '[Varian Dihapus]';
-                                        return $namaProduk . ' - ' . $namaVarian;
+
+                                        return $namaProduk.' - '.$namaVarian;
                                     })
                                     ->columnSpan(4),
                                 Infolists\Components\TextEntry::make('jumlah_pesan')
@@ -389,7 +393,7 @@ class PurchaseOrderResource extends Resource
                                     ->default(0) // PERBAIKAN: Tambahkan default
                                     ->badge()
                                     // PERBAIKAN: Casting (int) untuk keamanan
-                                    ->color(fn($state, $record) => (int)$state >= $record->jumlah_pesan ? 'success' : ((int)$state > 0 ? 'warning' : 'gray'))
+                                    ->color(fn ($state, $record) => (int) $state >= $record->jumlah_pesan ? 'success' : ((int) $state > 0 ? 'warning' : 'gray'))
                                     ->columnSpan(2),
                             ])
                             ->columns(12), // Total 12 kolom grid
@@ -401,7 +405,7 @@ class PurchaseOrderResource extends Resource
                             ->money('IDR')
                             ->default(0) // PERBAIKAN: Tambahkan default
                             ->size(Infolists\Components\TextEntry\TextEntrySize::Large), // Ukuran besar
-                    ])
+                    ]),
 
             ]);
     }
@@ -419,8 +423,8 @@ class PurchaseOrderResource extends Resource
         return [
             'index' => Pages\ListPurchaseOrders::route('/'),
             'create' => Pages\CreatePurchaseOrder::route('/create'),
-            // 'edit' => Pages\EditPurchaseOrder::route('/{record}/edit'), // Komentari/hapus jika hanya bisa diedit saat draft
-            'view' => Pages\ViewPurchaseOrder::route('/{record}'), // Ganti edit ke view default
+            'edit' => Pages\EditPurchaseOrder::route('/{record}/edit'),
+            'view' => Pages\ViewPurchaseOrder::route('/{record}'),
         ];
     }
 

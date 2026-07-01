@@ -8,17 +8,16 @@ use App\Models\StokCabang;
 use App\Models\VarianProduk;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Forms\Get;
+use Filament\Forms\Set;
+use Filament\Infolists;
+use Filament\Infolists\Infolist;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Filament\Infolists;
-use Filament\Infolists\Infolist;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
-use Filament\Forms\Get;
-use Filament\Forms\Set;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Number;
 
 class BarangKeluarResource extends Resource
@@ -26,8 +25,11 @@ class BarangKeluarResource extends Resource
     protected static ?string $model = BarangKeluar::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-arrow-up-tray';
+
     protected static ?string $navigationGroup = 'Transaksi Inventori';
+
     protected static ?int $navigationSort = 3;
+
     protected static ?string $recordTitleAttribute = 'nomor_transaksi';
 
     // Custom navigation label (singular)
@@ -42,7 +44,7 @@ class BarangKeluarResource extends Resource
                 Forms\Components\Section::make('Informasi Transaksi')
                     ->schema([
                         Forms\Components\TextInput::make('nomor_transaksi')
-                            ->default('BK-' . date('Ymd') . '-XXXX')
+                            ->default('BK-'.date('Ymd').'-XXXX')
                             ->disabled()
                             ->dehydrated()
                             ->label('Nomor Transaksi')
@@ -90,7 +92,7 @@ class BarangKeluarResource extends Resource
                                     // Logika Krusial: Hanya tampilkan produk yang ADA STOK di cabang ini
                                     ->options(function (Get $get): Collection {
                                         $cabangId = $get('../../id_cabang'); // Ambil ID dari luar repeater
-                                        if (!$cabangId) {
+                                        if (! $cabangId) {
                                             return collect(); // Kosong jika cabang belum dipilih
                                         }
 
@@ -101,10 +103,11 @@ class BarangKeluarResource extends Resource
                                         })
                                             ->with('produk') // Load relasi produk untuk nama
                                             ->get()
-                                            ->mapWithKeys(fn(VarianProduk $v) => [$v->id => "{$v->produk->nama_produk} - {$v->nama_varian}"]);
+                                            ->mapWithKeys(fn (VarianProduk $v) => [$v->id => "{$v->produk->nama_produk} - {$v->nama_varian}"]);
                                     })
                                     ->getOptionLabelUsing(function ($value): ?string {
                                         $record = VarianProduk::with('produk')->find($value);
+
                                         return $record ? "{$record->produk->nama_produk} - {$record->nama_varian}" : null;
                                     })
                                     // Logika Auto-fill Harga Jual
@@ -123,12 +126,13 @@ class BarangKeluarResource extends Resource
                                     ->content(function (Get $get): string {
                                         $varianId = $get('id_varian_produk');
                                         $cabangId = $get('../../id_cabang');
-                                        if (!$varianId || !$cabangId) {
+                                        if (! $varianId || ! $cabangId) {
                                             return 'Pilih produk';
                                         }
                                         $stok = StokCabang::where('id_cabang', $cabangId)
                                             ->where('id_varian_produk', $varianId)
                                             ->first();
+
                                         return $stok ? $stok->stok_saat_ini : '0';
                                     })
                                     ->columnSpan(['md' => 2]),
@@ -145,12 +149,13 @@ class BarangKeluarResource extends Resource
                                     ->maxValue(function (Get $get): int {
                                         $varianId = $get('id_varian_produk');
                                         $cabangId = $get('../../id_cabang');
-                                        if (!$varianId || !$cabangId) {
+                                        if (! $varianId || ! $cabangId) {
                                             return 1; // Default
                                         }
                                         $stok = StokCabang::where('id_cabang', $cabangId)
                                             ->where('id_varian_produk', $varianId)
                                             ->first();
+
                                         // Jika stok tidak ditemukan (seharusnya tidak mungkin krn filter), set max 0
                                         return $stok ? $stok->stok_saat_ini : 0;
                                     })
@@ -173,6 +178,7 @@ class BarangKeluarResource extends Resource
                                         $jumlah = (int) $get('jumlah');
                                         $harga = (float) $get('harga_jual_saat_transaksi');
                                         $subtotal = $jumlah * $harga;
+
                                         return Number::currency($subtotal, 'IDR');
                                     }),
 
@@ -180,6 +186,7 @@ class BarangKeluarResource extends Resource
                             ->itemLabel(function (array $state): ?string {
                                 $varian = VarianProduk::with('produk')->find($state['id_varian_produk'] ?? null);
                                 $harga = Number::currency($state['harga_jual_saat_transaksi'] ?? 0, 'IDR');
+
                                 return $varian ? "{$varian->produk->nama_produk} - {$varian->nama_varian} (Qty: {$state['jumlah']} @ {$harga})" : null;
                             })
                             ->columns(['md' => 12])
@@ -214,7 +221,7 @@ class BarangKeluarResource extends Resource
                 Tables\Columns\TextColumn::make('total_penjualan')
                     ->label('Total Penjualan')
                     ->money('IDR')
-                    ->getStateUsing(fn(BarangKeluar $record): float => $record->details->sum('subtotal'))
+                    ->getStateUsing(fn (BarangKeluar $record): float => $record->details->sum('subtotal'))
                     ->sortable(),
             ])
             ->filters([
@@ -223,7 +230,7 @@ class BarangKeluarResource extends Resource
                     ->relationship('cabang', 'nama_cabang')
                     ->preload()
                     ->searchable()
-                    ->hidden(fn() => !Auth::user()->hasRole('Admin')),
+                    ->hidden(fn () => ! Auth::user()->hasRole('Admin')),
             ])
             ->actions([
                 Tables\Actions\ViewAction::make(),
@@ -257,7 +264,7 @@ class BarangKeluarResource extends Resource
                             ->schema([
                                 Infolists\Components\TextEntry::make('id_varian_produk')
                                     ->label('Produk Varian')
-                                    ->getStateUsing(fn($record): string => $record->varianProduk ? (optional($record->varianProduk->produk)->nama_produk . ' - ' . $record->varianProduk->nama_varian) : 'N/A')
+                                    ->getStateUsing(fn ($record): string => $record->varianProduk ? (optional($record->varianProduk->produk)->nama_produk.' - '.$record->varianProduk->nama_varian) : 'N/A')
                                     ->columnSpan(4),
                                 Infolists\Components\TextEntry::make('jumlah')
                                     ->label('Jumlah Terjual')
@@ -272,7 +279,7 @@ class BarangKeluarResource extends Resource
                                     ->money('IDR')
                                     ->columnSpan(3),
                             ])
-                            ->columns(12)
+                            ->columns(12),
                     ]),
                 Infolists\Components\Section::make('Ringkasan')
                     ->schema([
@@ -280,8 +287,8 @@ class BarangKeluarResource extends Resource
                             ->label('Total Nilai Penjualan')
                             ->money('IDR')
                             ->size(Infolists\Components\TextEntry\TextEntrySize::Large)
-                            ->getStateUsing(fn(BarangKeluar $record): float => $record->details->sum('subtotal')),
-                    ])
+                            ->getStateUsing(fn (BarangKeluar $record): float => $record->details->sum('subtotal')),
+                    ]),
             ]);
     }
 

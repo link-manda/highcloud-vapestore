@@ -3,33 +3,32 @@
 namespace App\Filament\Pages;
 
 use App\Filament\Exports\PurchaseOrderExporter;
-use App\Models\PurchaseOrder;
-use App\Models\Supplier;
 use App\Models\Cabang;
+use App\Models\PurchaseOrder;
+use App\Services\LaporanPdfService;
 use Filament\Forms\Components\DatePicker;
-use Filament\Forms\Components\Select as FormSelect;
 use Filament\Pages\Page;
-use Filament\Tables\Contracts\HasTable;
-use Filament\Tables\Concerns\InteractsWithTable;
-use Filament\Tables\Table;
 use Filament\Tables\Actions\Action;
 use Filament\Tables\Actions\ExportAction;
-use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\BadgeColumn;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Concerns\InteractsWithTable;
+use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
-use Filament\Tables;
-use Illuminate\Support\Carbon;
-use App\Services\LaporanPdfService;
 
 class LaporanPurchaseOrder extends Page implements HasTable
 {
     use InteractsWithTable;
 
     protected static ?string $navigationIcon = 'heroicon-o-document-magnifying-glass';
+
     protected static ?string $navigationLabel = 'Laporan Purchase Order';
+
     protected static ?string $navigationGroup = 'Laporan';
+
     protected static ?string $title = 'Laporan Purchase Order (Status)';
 
     protected static string $view = 'filament.pages.laporan-purchase-order';
@@ -82,12 +81,12 @@ class LaporanPurchaseOrder extends Page implements HasTable
                     ->label('Cabang Tujuan')
                     ->searchable()
                     ->sortable(),
-                
+
                 BadgeColumn::make('status')
                     ->label('Status')
-                    ->color(fn(PurchaseOrder $record): string => $record->status_color ?? 'gray')
+                    ->color(fn (PurchaseOrder $record): string => $record->status_color ?? 'gray')
                     ->sortable(),
-                
+
                 TextColumn::make('progres')
                     ->label('Progres Diterima')
                     ->state(function (PurchaseOrder $record): string {
@@ -95,11 +94,12 @@ class LaporanPurchaseOrder extends Page implements HasTable
                         $totalDiterima = $record->details->sum('jumlah_diterima');
                         // Hindari pembagian nol jika PO tidak memiliki item
                         if ($totalDipesan == 0) {
-                            return "0 / 0 item";
+                            return '0 / 0 item';
                         }
+
                         return "{$totalDiterima} / {$totalDipesan} item";
                     }),
-                
+
                 TextColumn::make('total_harga')
                     ->label('Total Nilai (IDR)')
                     ->money('IDR')
@@ -132,6 +132,7 @@ class LaporanPurchaseOrder extends Page implements HasTable
                             // Jika user menghapus semua filter, tampilkan semua PO
                             return $query;
                         }
+
                         // Tampilkan PO yang statusnya ada di dalam array pilihan user
                         return $query->whereIn('status', $data['values']);
                     }),
@@ -183,7 +184,7 @@ class LaporanPurchaseOrder extends Page implements HasTable
                         return $service->generate(
                             'pdf.laporan-purchase-order',
                             $this->getFilteredTableQuery()->get(),
-                            'laporan-purchase-order-' . now()->format('Y-m-d')
+                            'laporan-purchase-order-'.now()->format('Y-m-d')
                         );
                     }),
                 Action::make('refresh')

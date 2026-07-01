@@ -14,7 +14,7 @@ class ViewBarangMasuk extends ViewRecord
     {
         return [
             // Actions\EditAction::make(), // Tombol Edit di header (jika diperlukan)
-            Actions\DeleteAction::make(), // Tambahkan tombol Delete di header jika perlu
+            // Actions\DeleteAction::make(), // Dinonaktifkan demi integritas stok
         ];
     }
 }

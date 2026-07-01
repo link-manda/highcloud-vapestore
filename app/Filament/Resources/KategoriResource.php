@@ -4,7 +4,6 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\KategoriResource\Pages;
 use App\Models\Kategori;
-use Filament\Forms;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
@@ -16,8 +15,11 @@ use Filament\Tables\Table;
 class KategoriResource extends Resource
 {
     protected static ?string $model = Kategori::class;
+
     protected static ?string $navigationIcon = 'heroicon-o-tag';
+
     protected static ?string $navigationGroup = 'Data Master';
+
     protected static ?int $navigationSort = 2;
 
     // Custom navigation label (singular)

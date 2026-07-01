@@ -6,33 +6,34 @@ use App\Filament\Resources\BarangMasukResource\Pages;
 use App\Models\BarangMasuk;
 use App\Models\PurchaseOrder;
 use App\Models\VarianProduk;
-use App\Models\StokCabang;
 use Filament\Forms;
 use Filament\Forms\Form;
-use Filament\Resources\Resource;
-use Filament\Tables;
-use Filament\Tables\Table;
-use Filament\Infolists;
-use Filament\Tables\Actions\ViewAction;
-use Filament\Tables\Actions\EditAction;
-use Filament\Infolists\Infolist;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
-use Illuminate\Support\Number;
 use Filament\Forms\Get;
 use Filament\Forms\Set;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Auth;
+use Filament\Infolists;
+use Filament\Infolists\Infolist;
+use Filament\Resources\Resource;
+use Filament\Tables;
+use Filament\Tables\Actions\ViewAction;
+use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Number;
 
 class BarangMasukResource extends Resource
 {
     protected static ?string $model = BarangMasuk::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-arrow-down-tray';
+
     protected static ?string $navigationGroup = 'Transaksi Inventori';
+
     protected static ?int $navigationSort = 2;
+
     protected static ?string $recordTitleAttribute = 'nomor_transaksi';
+
     protected static ?string $navigationLabel = 'Barang Masuk (Supplier)';
 
     public static function form(Form $form): Form
@@ -44,7 +45,7 @@ class BarangMasukResource extends Resource
                 Forms\Components\Section::make('Informasi Transaksi')
                     ->schema([
                         Forms\Components\TextInput::make('nomor_transaksi')
-                            ->default('BM-' . date('Ymd') . '-XXXX')
+                            ->default('BM-'.date('Ymd').'-XXXX')
                             ->disabled()
                             ->dehydrated()
                             ->label('Nomor Transaksi'),
@@ -62,7 +63,7 @@ class BarangMasukResource extends Resource
                             ->disabled($user->role === 'staf' && $user->id_cabang)
                             ->dehydrated()
                             ->default($user->role === 'staf' ? $user->id_cabang : null)
-                            ->afterStateUpdated(fn(Set $set) => $set('id_purchase_order', null)),
+                            ->afterStateUpdated(fn (Set $set) => $set('id_purchase_order', null)),
                         Forms\Components\Select::make('id_supplier')
                             ->relationship('supplier', 'nama_supplier')
                             ->label('Sumber Supplier')
@@ -70,15 +71,16 @@ class BarangMasukResource extends Resource
                             ->preload()
                             ->reactive()
                             ->required()
-                            ->afterStateUpdated(fn(Set $set) => $set('id_purchase_order', null)),
+                            ->afterStateUpdated(fn (Set $set) => $set('id_purchase_order', null)),
                         Forms\Components\Select::make('id_purchase_order')
                             ->label('Purchase Order (PO)')
                             ->options(function (Get $get): Collection {
                                 $supplierId = $get('id_supplier');
                                 $cabangId = $get('id_cabang_tujuan');
-                                if (!$supplierId || !$cabangId) {
+                                if (! $supplierId || ! $cabangId) {
                                     return collect();
                                 }
+
                                 return PurchaseOrder::where('id_supplier', $supplierId)
                                     ->where('id_cabang_tujuan', $cabangId)
                                     ->whereIn('status', ['Submitted', 'Partially Received'])
@@ -88,7 +90,7 @@ class BarangMasukResource extends Resource
                             ->preload()
                             ->reactive()
                             ->live()
-                            ->visible(fn(Get $get) => $get('id_supplier') !== null && $get('id_cabang_tujuan') !== null)
+                            ->visible(fn (Get $get) => $get('id_supplier') !== null && $get('id_cabang_tujuan') !== null)
                             ->afterStateUpdated(function (Set $set, ?string $state) {
                                 self::fillDetailsFromPO($set, $state);
                             })
@@ -106,7 +108,7 @@ class BarangMasukResource extends Resource
                             ->schema([
                                 Forms\Components\Hidden::make('id_varian_produk')
                                     ->required()
-                                    ->visible(fn(Get $get) => $get('id_purchase_order') !== null),
+                                    ->visible(fn (Get $get) => $get('id_purchase_order') !== null),
 
                                 Forms\Components\Select::make('id_varian_produk')
                                     ->label('Produk Varian (SKU)')
@@ -114,16 +116,17 @@ class BarangMasukResource extends Resource
                                     ->preload()
                                     ->required()
                                     ->reactive()
-                                    ->getSearchResultsUsing(fn(string $search): array => VarianProduk::with('produk')
+                                    ->getSearchResultsUsing(fn (string $search): array => VarianProduk::with('produk')
                                         ->where('nama_varian', 'like', "%{$search}%")
                                         ->orWhere('sku_code', 'like', "%{$search}%")
-                                        ->orWhereHas('produk', fn($query) => $query->where('nama_produk', 'like', "%{$search}%"))
+                                        ->orWhereHas('produk', fn ($query) => $query->where('nama_produk', 'like', "%{$search}%"))
                                         ->limit(50)
                                         ->get()
-                                        ->mapWithKeys(fn(VarianProduk $record) => [$record->id => "{$record->produk->nama_produk} - {$record->nama_varian}"])
+                                        ->mapWithKeys(fn (VarianProduk $record) => [$record->id => "{$record->produk->nama_produk} - {$record->nama_varian}"])
                                         ->all())
                                     ->getOptionLabelUsing(function ($value): ?string {
                                         $record = VarianProduk::with('produk')->find($value);
+
                                         return $record ? "{$record->produk->nama_produk} - {$record->nama_varian}" : null;
                                     })
                                     ->afterStateUpdated(function (Set $set, ?string $state, Get $get) {
@@ -136,7 +139,7 @@ class BarangMasukResource extends Resource
                                             $set('subtotal', $jumlah * $hargaDefault);
                                         }
                                     })
-                                    ->visible(fn(Get $get) => $get('id_purchase_order') === null)
+                                    ->visible(fn (Get $get) => $get('id_purchase_order') === null)
                                     ->columnSpan(['md' => 5]),
 
                                 Forms\Components\TextInput::make('jumlah')
@@ -167,13 +170,14 @@ class BarangMasukResource extends Resource
                                         $set('subtotal', $jumlah * $harga);
                                     })
                                     ->prefix('Rp')
-                                    ->disabled(fn(Get $get) => $get('id_purchase_order') !== null)
+                                    ->disabled(fn (Get $get) => $get('id_purchase_order') !== null)
                                     ->columnSpan(['md' => 3]),
 
                                 Forms\Components\Placeholder::make('subtotal_display')
                                     ->label('Subtotal')
                                     ->content(function (Get $get): string {
                                         $subtotal = (float) ($get('jumlah') ?? 0) * (float) ($get('harga_beli_saat_transaksi') ?? 0);
+
                                         return Number::currency($subtotal, 'IDR');
                                     })
                                     ->columnSpan(['md' => 2]),
@@ -182,12 +186,13 @@ class BarangMasukResource extends Resource
                             ])
                             ->itemLabel(function (array $state): ?string {
                                 $varian = VarianProduk::with('produk')->find($state['id_varian_produk'] ?? null);
+
                                 return $varian ? "{$varian->produk->nama_produk} - {$varian->nama_varian}" : null;
                             })
                             ->columns(['md' => 12])
                             ->addActionLabel('Tambah Item Manual')
-                            ->addable(fn(Get $get) => $get('id_purchase_order') === null)
-                            ->deletable(fn(Get $get) => $get('id_purchase_order') === null)
+                            ->addable(fn (Get $get) => $get('id_purchase_order') === null)
+                            ->deletable(fn (Get $get) => $get('id_purchase_order') === null)
                             ->reorderable(false)
                             ->defaultItems(0)
                             ->required(),
@@ -233,15 +238,15 @@ class BarangMasukResource extends Resource
                     ->relationship('cabangTujuan', 'nama_cabang')
                     ->preload()
                     ->searchable()
-                    ->hidden(fn() => !Auth::user()->hasRole('Admin')),
+                    ->hidden(fn () => ! Auth::user()->hasRole('Admin')),
             ])
             ->actions([
                 ViewAction::make(),
-                EditAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+                    // Disable delete bulk action for transaction integrity
+                    // Tables\Actions\DeleteBulkAction::make(),
                 ]),
             ])
             ->defaultSort('created_at', 'desc');
@@ -270,7 +275,7 @@ class BarangMasukResource extends Resource
                                 // 'id_varian_produk' adalah kolom valid, 'getStateUsing' akan menimpanya.
                                 Infolists\Components\TextEntry::make('id_varian_produk')
                                     ->label('Produk Varian')
-                                    ->getStateUsing(fn($record): string => $record->varianProduk ? (optional($record->varianProduk->produk)->nama_produk . ' - ' . $record->varianProduk->nama_varian) : 'N/A')
+                                    ->getStateUsing(fn ($record): string => $record->varianProduk ? (optional($record->varianProduk->produk)->nama_produk.' - '.$record->varianProduk->nama_varian) : 'N/A')
                                     ->columnSpan(4),
                                 Infolists\Components\TextEntry::make('jumlah')
                                     ->label('Jumlah Diterima')
@@ -285,7 +290,7 @@ class BarangMasukResource extends Resource
                                     ->money('IDR')
                                     ->columnSpan(3),
                             ])
-                            ->columns(12)
+                            ->columns(12),
                     ]),
                 Infolists\Components\Section::make('Ringkasan')
                     ->schema([
@@ -293,8 +298,8 @@ class BarangMasukResource extends Resource
                             ->label('Total Nilai Barang Masuk')
                             ->money('IDR')
                             ->size(Infolists\Components\TextEntry\TextEntrySize::Large)
-                            ->getStateUsing(fn(BarangMasuk $record): float => $record->details->sum('subtotal')),
-                    ])
+                            ->getStateUsing(fn (BarangMasuk $record): float => $record->details->sum('subtotal')),
+                    ]),
             ]);
     }
 
@@ -311,7 +316,7 @@ class BarangMasukResource extends Resource
             'index' => Pages\ListBarangMasuks::route('/'),
             'create' => Pages\CreateBarangMasuk::route('/create'),
             'view' => Pages\ViewBarangMasuk::route('/{record}'),
-            'edit' => Pages\EditBarangMasuk::route('/{record}/edit'),
+            // 'edit' => Pages\EditBarangMasuk::route('/{record}/edit'), // Disabled for stock integrity
         ];
     }
 
@@ -321,17 +326,21 @@ class BarangMasukResource extends Resource
 
         if (empty($poId)) {
             $set('details', []);
+
             return;
         }
         $po = PurchaseOrder::with('details.varianProduk')->find($poId);
-        if (!$po) {
+        if (! $po) {
             $set('details', []);
+
             return;
         }
         $newDetails = [];
         foreach ($po->details as $detail) {
             $sisaQty = $detail->jumlah_pesan - $detail->jumlah_diterima;
-            if ($sisaQty <= 0) continue;
+            if ($sisaQty <= 0) {
+                continue;
+            }
 
             $newDetails[] = [
                 'id_varian_produk' => $detail->id_varian_produk,
@@ -342,7 +351,7 @@ class BarangMasukResource extends Resource
             Log::info("[fillDetailsFromPO] Added detail - varian_id: {$detail->id_varian_produk}, jumlah: {$sisaQty}");
         }
         $set('details', $newDetails);
-        Log::info("[fillDetailsFromPO] Final details to set: " . json_encode($newDetails));
+        Log::info('[fillDetailsFromPO] Final details to set: '.json_encode($newDetails));
     }
 
     public static function getEloquentQuery(): Builder

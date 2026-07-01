@@ -11,12 +11,12 @@ class CustomLogin extends Login
 
     protected static string $layout = 'filament-panels::components.layout.base';
 
-    public function getTitle(): string | Htmlable
+    public function getTitle(): string|Htmlable
     {
         return '';
     }
 
-    public function getHeading(): string | Htmlable
+    public function getHeading(): string|Htmlable
     {
         return '';
     }

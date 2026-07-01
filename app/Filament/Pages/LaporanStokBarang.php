@@ -4,29 +4,27 @@ namespace App\Filament\Pages;
 
 use App\Filament\Exports\StokCabangExporter;
 use App\Models\Cabang;
-use App\Models\Kategori;
-use App\Models\Produk;
 use App\Models\StokCabang;
+use App\Services\LaporanPdfService;
 use Filament\Pages\Page;
-use Filament\Tables\Contracts\HasTable;
-use Filament\Tables\Concerns\InteractsWithTable;
-use Filament\Tables\Table;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Actions\Action;
 use Filament\Tables\Actions\ExportAction;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Number;
-use Filament\Tables;
-use App\Services\LaporanPdfService;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Concerns\InteractsWithTable;
+use Filament\Tables\Contracts\HasTable;
+use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Table;
 
 class LaporanStokBarang extends Page implements HasTable
 {
     use InteractsWithTable;
 
     protected static ?string $navigationIcon = 'heroicon-o-chart-pie';
+
     protected static ?string $navigationLabel = 'Laporan Sisa Stok';
+
     protected static ?string $navigationGroup = 'Laporan';
+
     protected static ?string $title = 'Laporan Sisa Stok Barang';
 
     protected static string $view = 'filament.pages.laporan-stok-barang';
@@ -52,7 +50,6 @@ class LaporanStokBarang extends Page implements HasTable
     {
         return auth()->check() && auth()->user()->hasRole('Admin');
     }
-
 
     /**
      * Mendefinisikan struktur tabel untuk Laporan Sisa Stok.
@@ -109,6 +106,7 @@ class LaporanStokBarang extends Page implements HasTable
                         // Kalkulasi: stok * harga_beli
                         $stok = $record->stok_saat_ini ?? 0;
                         $harga_beli = $record->varianProduk?->harga_beli ?? 0;
+
                         return (float) $stok * (float) $harga_beli;
                     })
                     ->sortable(),
@@ -131,7 +129,7 @@ class LaporanStokBarang extends Page implements HasTable
                 // Tidak ada aksi per baris
             ])
             ->bulkActions([
-                
+
             ])
             ->headerActions([
                 ExportAction::make()
@@ -147,7 +145,7 @@ class LaporanStokBarang extends Page implements HasTable
                         return $service->generate(
                             'pdf.laporan-stok-barang',
                             $this->getFilteredTableQuery()->get(),
-                            'laporan-sisa-stok-' . now()->format('Y-m-d')
+                            'laporan-sisa-stok-'.now()->format('Y-m-d')
                         );
                     }),
                 Action::make('refresh')
