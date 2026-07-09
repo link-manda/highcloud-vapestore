@@ -1,9 +1,18 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
-body { 
-    background-color: #FAFAFA; 
-    color: #000000; 
-    font-family: 'Manrope', sans-serif; 
+@theme {
+    --color-gallery-bg: #FAFAFA;
+    --color-gallery-surface: #FFFFFF;
+    --color-gallery-text: #000000;
+    --color-gallery-muted: #404040;
+    --color-gallery-dim: #999999;
+    --color-gallery-border: #EEEEEE;
+    --font-headline: "Plus Jakarta Sans", sans-serif;
+    --font-body: "Manrope", sans-serif;
+}
+
+body {
+    background-color: #FAFAFA;
+    color: #000000;
+    font-family: "Manrope", sans-serif;
 }

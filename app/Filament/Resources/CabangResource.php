@@ -13,6 +13,7 @@ use Filament\Tables;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Model;
 
 class CabangResource extends Resource
 {
@@ -48,12 +49,25 @@ class CabangResource extends Resource
                 // Kolom Input Telepon Cabang
                 TextInput::make('telepon_cabang')
                     ->tel() // Tipe 'tel' untuk format telepon
-                    ->maxLength(20),
+                    ->maxLength(20)
+                    ->columnSpanFull(),
+
+                TextInput::make('latitude')
+                    ->numeric()
+                    ->minValue(-90)
+                    ->maxValue(90),
+
+                TextInput::make('longitude')
+                    ->numeric()
+                    ->minValue(-180)
+                    ->maxValue(180),
 
                 // Kolom Input Foto Cabang
                 FileUpload::make('image')
                     ->label('Foto Cabang')
                     ->image()
+                    ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
+                    ->maxSize(2048)
                     ->directory('cabang-images')
                     ->visibility('public')
                     ->imageResizeTargetWidth('500')
@@ -115,6 +129,26 @@ class CabangResource extends Resource
     }
 
     public static function canViewAny(): bool
+    {
+        return auth()->user()->hasRole('Admin');
+    }
+
+    public static function canCreate(): bool
+    {
+        return auth()->user()->hasRole('Admin');
+    }
+
+    public static function canEdit(Model $record): bool
+    {
+        return auth()->user()->hasRole('Admin');
+    }
+
+    public static function canDelete(Model $record): bool
+    {
+        return auth()->user()->hasRole('Admin');
+    }
+
+    public static function canDeleteAny(): bool
     {
         return auth()->user()->hasRole('Admin');
     }

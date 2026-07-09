@@ -39,4 +39,25 @@ class Cabang extends Model
     {
         return $this->hasMany(StokCabang::class, 'id_cabang');
     }
+
+    /**
+     * Cleanup old image on update or delete
+     */
+    protected static function booted(): void
+    {
+        static::updated(function (Cabang $cabang) {
+            if ($cabang->isDirty('image')) {
+                $oldImage = $cabang->getOriginal('image');
+                if ($oldImage) {
+                    \Illuminate\Support\Facades\Storage::disk('public')->delete($oldImage);
+                }
+            }
+        });
+
+        static::deleted(function (Cabang $cabang) {
+            if ($cabang->image) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($cabang->image);
+            }
+        });
+    }
 }
